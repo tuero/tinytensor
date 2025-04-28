@@ -1,0 +1,280 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "core",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "$env{CXX_WARNINGS} $env{CXX_OPT} $env{CXX_EXTRA}",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_POSITION_INDEPENDENT_CODE": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "cuda",
+      "hidden": true,
+      "cacheVariables": {
+        "TT_BUILD_CUDA": "ON"
+      }
+    },
+    {
+      "name": "testing",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TT_BUILD_TESTS": "ON",
+        "TT_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "gcc-release",
+      "hidden": true,
+      "inherits": ["core", "release"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++"
+      },
+      "environment": {
+        "CXX_WARNINGS": "-Wall -Wextra -Wconversion -Wsign-conversion -Wunused -Wshadow",
+        "CXX_OPT": "-O3 -DNDEBUG"
+      }
+    },
+    {
+      "name": "gcc-debug",
+      "hidden": true,
+      "inherits": ["core", "debug"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++"
+      },
+      "environment": {
+        "CXX_WARNINGS": "-Wall -Wextra -Wconversion -Wsign-conversion -Wunused -Wshadow",
+        "CXX_OPT": "-O0 -g -ggdb -fno-omit-frame-pointer -DDEBUG"
+      }
+    },
+    {
+      "name": "gcc-testing",
+      "hidden": true,
+      "inherits": ["core", "testing"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++"
+      },
+      "environment": {
+        "CXX_WARNINGS": "-Wall -Wextra -Wconversion -Wsign-conversion -Wunused -Wshadow",
+        "CXX_OPT": "-O2 -g -ggdb -fno-omit-frame-pointer -DDEBUG"
+      }
+    },
+    {
+      "name": "clang-release",
+      "hidden": true,
+      "inherits": ["core", "release"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "environment": {
+        "CXX_WARNINGS": "-Wall -Wextra -Wconversion -Wsign-conversion -Wunused -Wshadow",
+        "CXX_OPT": "-O3 -DNDEBUG"
+      }
+    },
+    {
+      "name": "clang-debug",
+      "hidden": true,
+      "inherits": ["core", "debug"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "environment": {
+        "CXX_WARNINGS": "-Wall -Wextra -Wconversion -Wsign-conversion -Wunused -Wshadow",
+        "CXX_OPT": "-O0 -g -ggdb -fno-omit-frame-pointer -DDEBUG"
+      }
+    },
+    {
+      "name": "clang-testing",
+      "hidden": true,
+      "inherits": ["core", "testing"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "environment": {
+        "CXX_WARNINGS": "-Wall -Wextra -Wconversion -Wsign-conversion -Wunused -Wshadow",
+        "CXX_OPT": "-O2 -g -ggdb -fno-omit-frame-pointer -DDEBUG"
+      }
+    },
+    {
+      "name": "gcc-release-cuda",
+      "displayName": "Release (GCC) with CUDA",
+      "inherits": ["gcc-release", "cuda"]
+    },
+    {
+      "name": "gcc-release-cpu",
+      "displayName": "Release (GCC) CPU only",
+      "inherits": ["gcc-release"]
+    },
+    {
+      "name": "gcc-debug-cuda",
+      "displayName": "Debug (GCC) with CUDA",
+      "inherits": ["gcc-debug", "cuda"]
+    },
+    {
+      "name": "gcc-debug-cpu",
+      "displayName": "Debug (GCC) CPU only",
+      "inherits": ["gcc-testing"]
+    },
+    {
+      "name": "gcc-testing-cuda",
+      "displayName": "Testing (GCC) with CUDA",
+      "inherits": ["gcc-testing", "cuda"]
+    },
+    {
+      "name": "gcc-testing-cpu",
+      "displayName": "Testing (GCC) CPU only",
+      "inherits": ["gcc-testing"]
+    },
+    {
+      "name": "clang-release-cuda",
+      "displayName": "Release (Clang) with CUDA",
+      "inherits": ["clang-release", "cuda"]
+    },
+    {
+      "name": "clang-release-cpu",
+      "displayName": "Release (Clang) CPU only",
+      "inherits": ["clang-release"]
+    },
+    {
+      "name": "clang-debug-cuda",
+      "displayName": "Debug (Clang) with CUDA",
+      "inherits": ["clang-debug", "cuda"]
+    },
+    {
+      "name": "clang-debug-cpu",
+      "displayName": "Debug (Clang) CPU only",
+      "inherits": ["clang-debug"]
+    },
+    {
+      "name": "clang-testing-cuda",
+      "displayName": "Testing (Clang) with CUDA and tests built",
+      "inherits": ["clang-testing", "cuda"]
+    },
+    {
+      "name": "clang-testing-cpu",
+      "displayName": "Testing (Clang) CPU only and tests built",
+      "inherits": ["clang-testing"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "gcc-release-cuda",
+      "displayName": "Release (GCC) with CUDA",
+      "configurePreset": "gcc-release-cuda"
+    },
+    {
+      "name": "gcc-release-cpu",
+      "displayName": "Release (GCC) CPU only",
+      "configurePreset": "gcc-release-cpu"
+    },
+    {
+      "name": "gcc-debug-cuda",
+      "displayName": "Debug (GCC) with CUDA",
+      "configurePreset": "gcc-debug-cuda"
+    },
+    {
+      "name": "gcc-debug-cpu",
+      "displayName": "Debug (GCC) CPU only",
+      "configurePreset": "gcc-debug-cpu"
+    },
+    {
+      "name": "gcc-testing-cuda",
+      "displayName": "Debug (GCC) with CUDA and tests built",
+      "configurePreset": "gcc-testing-cuda"
+    },
+    {
+      "name": "gcc-testing-cpu",
+      "displayName": "Debug (GCC) CPU only and tests built",
+      "configurePreset": "gcc-testing-cpu"
+    },
+    {
+      "name": "clang-release-cuda",
+      "displayName": "Release (Clang) with CUDA",
+      "configurePreset": "clang-release-cuda"
+    },
+    {
+      "name": "clang-release-cpu",
+      "displayName": "Release (Clang) CPU only",
+      "configurePreset": "clang-release-cpu"
+    },
+    {
+      "name": "clang-debug-cuda",
+      "displayName": "Debug (Clang) with CUDA",
+      "configurePreset": "clang-debug-cuda"
+    },
+    {
+      "name": "clang-debug-cpu",
+      "displayName": "Debug (Clang) CPU only",
+      "configurePreset": "clang-debug-cpu"
+    },
+    {
+      "name": "clang-testing-cuda",
+      "displayName": "Testing (Clang) with CUDA and tests built",
+      "configurePreset": "clang-testing-cuda"
+    },
+    {
+      "name": "clang-testing-cpu",
+      "displayName": "Testing (Clang) CPU only and tests built",
+      "configurePreset": "clang-testing-cpu"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test-common",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "gcc-testing-cuda",
+      "displayName": "Test (GCC) with CUDA build",
+      "inherits": "test-common",
+      "configurePreset": "gcc-testing-cuda"
+    },
+    {
+      "name": "gcc-testing-cpu",
+      "displayName": "Test (GCC) CPU only build",
+      "inherits": "test-common",
+      "configurePreset": "gcc-testing-cpu"
+    },
+    {
+      "name": "clang-testing-cuda",
+      "displayName": "Test (Clang) with CUDA build",
+      "inherits": "test-common",
+      "configurePreset": "clang-testing-cuda"
+    },
+    {
+      "name": "clang-testing-cpu",
+      "displayName": "Test (Clang) CPU only build",
+      "inherits": "test-common",
+      "configurePreset": "clang-testing-cpu"
+    }
+  ]
+}

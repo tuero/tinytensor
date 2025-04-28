@@ -1,0 +1,36 @@
+target_sources(tinytensor PRIVATE
+    assign.cpp
+    assign.h
+    backend_cpu.cpp
+    backend_cpu.h
+    binary.cpp
+    binary.h
+    cast.cpp
+    cast.h
+    clamp.cpp
+    clamp.h
+    conv.cpp
+    conv.h
+    data_types.h
+    distribution.cpp
+    distribution.h
+    index.cpp
+    index.h
+    misc.cpp
+    misc.h
+    matmul.cpp
+    reduce.cpp
+    reduce.h
+    storage_cpu.h
+    unary.cpp
+    unary.h
+
+    kernel/assign.hpp
+    kernel/binary.hpp
+    kernel/clamp.hpp
+    kernel/conv.hpp
+    kernel/distribution.hpp
+    kernel/misc.hpp
+    kernel/reduce.hpp
+    kernel/unary.hpp
+)

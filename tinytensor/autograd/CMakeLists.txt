@@ -1,0 +1,24 @@
+target_sources(tinytensor PRIVATE
+    backward.cpp
+    backward.h
+    binary_ops.cpp
+    binary_ops.h
+    clamp_ops.cpp
+    clamp_ops.h
+    conv_ops.cpp
+    conv_ops.h
+    dag.cpp
+    dag.h
+    index_ops.cpp
+    index_ops.h
+    joining_ops.cpp
+    joining_ops.h
+    misc_ops.cpp
+    misc_ops.h
+    reduce_ops.cpp
+    reduce_ops.h
+    shape_ops.cpp
+    shape_ops.h
+    unary_ops.cpp
+    unary_ops.h
+)

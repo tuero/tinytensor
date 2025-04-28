@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+.ccls-cache/*
+
+# C extensions
+*.so
+
+# OSX specific
+.DS_Store
+
+# Build products
+build/
+debug/
+cmake-build-*/
+gmon.out
+
+# IDE
+.idea/
+.vscode/
+.cache/
+.clangd
+
+# CMake
+CMakeUserPresets.json
+compile_commands.json
+
+# Tensors
+*.pt

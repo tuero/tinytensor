@@ -1,0 +1,22 @@
+Checks: "-*,
+  abseil-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -misc-non-private-member-variables-in-classes,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-noexcept-move-operations,
+  -misc-no-recursion"
+
+WarningsAsErrors: ""
+HeaderFilterRegex: ""
+UseColor: true
+CheckOptions:
+  - key: modernize-use-nullptr.NullMacros
+    value: NULL
+ExtraArgsBefore:
+  - --gcc-install-dir=/usr/local/lib/gcc/x86_64-pc-linux-gnu/13.1.0
