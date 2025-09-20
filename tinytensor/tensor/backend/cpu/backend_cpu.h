@@ -31,11 +31,17 @@ public:
     // Tensor construction
     [[nodiscard]] auto from_vec(const std::vector<bool> &data, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto from_vec(const std::vector<kU8CType> &data, int device_id) const -> StoragePtr override;
+    [[nodiscard]] auto from_vec(std::vector<kU8CType> &&data, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto from_vec(const std::vector<kI16CType> &data, int device_id) const -> StoragePtr override;
+    [[nodiscard]] auto from_vec(std::vector<kI16CType> &&data, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto from_vec(const std::vector<kI32CType> &data, int device_id) const -> StoragePtr override;
+    [[nodiscard]] auto from_vec(std::vector<kI32CType> &&data, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto from_vec(const std::vector<kI64CType> &data, int device_id) const -> StoragePtr override;
+    [[nodiscard]] auto from_vec(std::vector<kI64CType> &&data, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto from_vec(const std::vector<kF32CType> &data, int device_id) const -> StoragePtr override;
+    [[nodiscard]] auto from_vec(std::vector<kF32CType> &&data, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto from_vec(const std::vector<kF64CType> &data, int device_id) const -> StoragePtr override;
+    [[nodiscard]] auto from_vec(std::vector<kF64CType> &&data, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto from_scalar(const Scalar scalar, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto full(const Scalar &value, std::size_t N, int device_id) const -> StoragePtr override;
     [[nodiscard]] auto arange(std::size_t N, ScalarType dtype, int device_id) const -> StoragePtr override;
@@ -255,9 +261,13 @@ public:
     [[nodiscard]] auto where(const Tensor &cond, const Tensor &lhs, const Tensor &rhs) const -> Tensor override;
     void clamp_(Tensor &tensor, const Tensor &min, const Tensor &max) const override;
 
-    [[nodiscard]] auto
-        conv2d(const Tensor &input, const Tensor &weight, const std::optional<Tensor> &bias, int stride, int padding)
-            const -> Tensor override;
+    [[nodiscard]] auto conv2d(
+        const Tensor &input,
+        const Tensor &weight,
+        const std::optional<Tensor> &bias,
+        int stride,
+        int padding
+    ) const -> Tensor override;
     [[nodiscard]] auto conv2d_backward(
         const Tensor &grad_output,
         const Tensor &input,

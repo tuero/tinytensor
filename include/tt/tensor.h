@@ -133,6 +133,17 @@ public:
     Tensor(const std::vector<T> &data, Shape shape, Device device, bool requires_grad = false);
 
     /**
+     * Construct from a vector
+     * @param data The vector data
+     * @param shape The shape to represent the data
+     * @param device The device for the Tensor
+     * @param requires_grad Flag if autograd operations should be recorded
+     */
+    template <typename T>
+        requires(IsScalarType<T> || std::is_same_v<T, bool>)
+    Tensor(std::vector<T> &&data, Shape shape, Device device, bool requires_grad = false);
+
+    /**
      * Construct from an initializer_list
      * @param data The initializer list of data
      * @param shape The shape to represent the data
@@ -154,6 +165,16 @@ public:
         requires(IsScalarType<T> || std::is_same_v<T, bool>)
     Tensor(const std::vector<T> &data, Device device, bool requires_grad = false)
         : Tensor(data, {static_cast<int>(data.size())}, device, requires_grad) {}
+
+    /**
+     * Construct from a vector, with inferred flattened shape
+     * @param data The vector data
+     * @param device The device for the Tensor
+     * @param requires_grad Flag if autograd operations should be recorded
+     */
+    template <typename T>
+        requires(IsScalarType<T> || std::is_same_v<T, bool>)
+    Tensor(std::vector<T> &&data, Device device, bool requires_grad = false);
 
     /**
      * Construct from an initializer list, with inferred flattened shape

@@ -271,6 +271,71 @@ template Tensor::Tensor(const std::vector<to_ctype_t<kI64>> &, Shape shape, Devi
 template Tensor::Tensor(const std::vector<to_ctype_t<kF32>> &, Shape shape, Device device, bool requires_grad);
 template Tensor::Tensor(const std::vector<to_ctype_t<kF64>> &, Shape shape, Device device, bool requires_grad);
 
+template <typename T>
+    requires(IsScalarType<T> || std::is_same_v<T, bool>)
+Tensor::Tensor(std::vector<T> &&data, Shape shape, Device device, bool requires_grad)
+    : device_(device),
+      scalar_type_(to_scalar<T>::type),
+      offset_(0),
+      shape_({static_cast<int>(data.size())}),
+      stride_(shape_.to_stride()),
+      storage_(get_backend(device)->from_vec(std::move(data), device.id)),
+      ctx_(std::make_shared<autograd::SharedGrad>()) {
+    // shape_ is the moved from vector size, need this temporary since we cannot refer back to moved from data
+    if (shape.size() <= 0) {
+        TT_EXCEPTION("Cannot make empty tensor");
+    }
+    if (shape.numel() != shape_.numel()) {
+        TT_EXCEPTION(
+            std::format(
+                "Number of elements the given shape represents ({:d}) does not match size of input "
+                "data ({})",
+                shape.numel(),
+                shape_.numel()
+            )
+        );
+    }
+    // Set shape from passed value
+    shape_ = shape;
+    stride_ = shape_.to_stride();
+    CHECK_REQUIRES_GRAD(scalar_type_, requires_grad);
+    set_requires_grad(requires_grad);
+}
+
+template Tensor::Tensor(std::vector<bool> &&, Shape shape, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kU8>> &&, Shape shape, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kI16>> &&, Shape shape, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kI32>> &&, Shape shape, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kI64>> &&, Shape shape, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kF32>> &&, Shape shape, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kF64>> &&, Shape shape, Device device, bool requires_grad);
+
+// Can't reuse other constructor since we need to get data size after moving it
+template <typename T>
+    requires(IsScalarType<T> || std::is_same_v<T, bool>)
+Tensor::Tensor(std::vector<T> &&data, Device device, bool requires_grad)
+    : device_(device),
+      scalar_type_(to_scalar<T>::type),
+      offset_(0),
+      shape_({static_cast<int>(data.size())}),
+      stride_(shape_.to_stride()),
+      storage_(get_backend(device)->from_vec(std::move(data), device.id)),
+      ctx_(std::make_shared<autograd::SharedGrad>()) {
+    if (shape_.size() <= 0) {
+        TT_EXCEPTION("Cannot make empty tensor");
+    }
+    CHECK_REQUIRES_GRAD(scalar_type_, requires_grad);
+    set_requires_grad(requires_grad);
+}
+
+template Tensor::Tensor(std::vector<bool> &&, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kU8>> &&, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kI16>> &&, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kI32>> &&, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kI64>> &&, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kF32>> &&, Device device, bool requires_grad);
+template Tensor::Tensor(std::vector<to_ctype_t<kF64>> &&, Device device, bool requires_grad);
+
 Tensor::Tensor(Scalar scalar, Device device, bool requires_grad)
     : device_(device),
       scalar_type_(scalar.dtype()),

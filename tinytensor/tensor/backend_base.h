@@ -33,13 +33,20 @@ public:
 
     // Tensor construction
     using StoragePtr = std::unique_ptr<StorageBase>;
+    // No rvalue for bool required since we never steal the data, we transform to uint8_t
     [[nodiscard]] virtual auto from_vec(const std::vector<bool> &data, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto from_vec(const std::vector<uint8_t> &data, int device_id) const -> StoragePtr = 0;
+    [[nodiscard]] virtual auto from_vec(std::vector<uint8_t> &&data, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto from_vec(const std::vector<int16_t> &data, int device_id) const -> StoragePtr = 0;
+    [[nodiscard]] virtual auto from_vec(std::vector<int16_t> &&data, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto from_vec(const std::vector<int32_t> &data, int device_id) const -> StoragePtr = 0;
+    [[nodiscard]] virtual auto from_vec(std::vector<int32_t> &&data, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto from_vec(const std::vector<int64_t> &data, int device_id) const -> StoragePtr = 0;
+    [[nodiscard]] virtual auto from_vec(std::vector<int64_t> &&data, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto from_vec(const std::vector<float> &data, int device_id) const -> StoragePtr = 0;
+    [[nodiscard]] virtual auto from_vec(std::vector<float> &&data, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto from_vec(const std::vector<double> &data, int device_id) const -> StoragePtr = 0;
+    [[nodiscard]] virtual auto from_vec(std::vector<double> &&data, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto from_scalar(Scalar scalar, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto full(const Scalar &value, std::size_t N, int device_id) const -> StoragePtr = 0;
     [[nodiscard]] virtual auto arange(std::size_t N, ScalarType dtype, int device_id) const -> StoragePtr = 0;
@@ -259,9 +266,13 @@ public:
     [[nodiscard]] virtual auto where(const Tensor &cond, const Tensor &lhs, const Tensor &rhs) const -> Tensor = 0;
     virtual void clamp_(Tensor &tensor, const Tensor &min, const Tensor &max) const = 0;
 
-    [[nodiscard]] virtual auto
-        conv2d(const Tensor &input, const Tensor &weight, const std::optional<Tensor> &bias, int stride, int padding)
-            const -> Tensor = 0;
+    [[nodiscard]] virtual auto conv2d(
+        const Tensor &input,
+        const Tensor &weight,
+        const std::optional<Tensor> &bias,
+        int stride,
+        int padding
+    ) const -> Tensor = 0;
 
     [[nodiscard]] virtual auto conv2d_backward(
         const Tensor &grad_output,

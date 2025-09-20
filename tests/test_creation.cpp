@@ -201,8 +201,6 @@ TEST_CASE("Creation one_hot") {
         Tensor indices({0, 1, 2, 0, 1}, device);
         Tensor tensor = one_hot(indices, -1);
         Tensor expected(expected_values, {5, 3}, device);
-        std::cout << tensor << std::endl;
-        std::cout << expected << std::endl;
         CHECK(allclose(tensor, expected));
     };
     runner_single_type<int>(test_one_hot1);
@@ -215,4 +213,23 @@ TEST_CASE("Creation one_hot") {
         CHECK(allclose(tensor, expected));
     };
     runner_single_type<int>(test_one_hot2);
+}
+
+// NOLINTNEXTLINE
+TEST_CASE("Creation vec") {
+    auto test_vec1 = []<typename T>(Device device) {
+        std::vector<T> expected_values = {1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0};
+        Tensor expected(expected_values, device);
+        Tensor tensor(std::move(expected_values), device);
+        CHECK(allclose(tensor, expected));
+    };
+    runner_all(test_vec1);
+
+    auto test_vec2 = []<typename T>(Device device) {
+        std::vector<T> expected_values = {1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0};
+        Tensor expected(expected_values, {5, 3}, device);
+        Tensor tensor(std::move(expected_values), {5, 3}, device);
+        CHECK(allclose(tensor, expected));
+    };
+    runner_all(test_vec2);
 }

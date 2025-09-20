@@ -4,8 +4,8 @@
 #include "tensor/backend/cuda/backend_cuda.h"
 
 #include <tt/concepts.h>
-#include <tt/random.h>
 #include <tt/exception.h>
+#include <tt/random.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
 
@@ -38,6 +38,7 @@
 #include <optional>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -56,20 +57,38 @@ auto BackendCUDA::from_vec(const std::vector<bool> &data, [[maybe_unused]] int d
 auto BackendCUDA::from_vec(const std::vector<kU8CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCUDA>(data);
 }
+auto BackendCUDA::from_vec(std::vector<kU8CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCUDA>(std::move(data));
+}
 auto BackendCUDA::from_vec(const std::vector<kI16CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCUDA>(data);
+}
+auto BackendCUDA::from_vec(std::vector<kI16CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCUDA>(std::move(data));
 }
 auto BackendCUDA::from_vec(const std::vector<kI32CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCUDA>(data);
 }
+auto BackendCUDA::from_vec(std::vector<kI32CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCUDA>(std::move(data));
+}
 auto BackendCUDA::from_vec(const std::vector<kI64CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCUDA>(data);
+}
+auto BackendCUDA::from_vec(std::vector<kI64CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCUDA>(std::move(data));
 }
 auto BackendCUDA::from_vec(const std::vector<kF32CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCUDA>(data);
 }
+auto BackendCUDA::from_vec(std::vector<kF32CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCUDA>(std::move(data));
+}
 auto BackendCUDA::from_vec(const std::vector<kF64CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCUDA>(data);
+}
+auto BackendCUDA::from_vec(std::vector<kF64CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCUDA>(std::move(data));
 }
 auto BackendCUDA::from_scalar(const Scalar scalar, [[maybe_unused]] int device_id) const -> StoragePtr {
     return DISPATCH_ALL_TYPES(scalar.dtype(), "BackendCUDA::from_scalar", [&]() {
@@ -88,25 +107,27 @@ auto BackendCUDA::arange(std::size_t N, ScalarType dtype, [[maybe_unused]] int d
 }
 
 // NOLINTNEXTLINE(*-macro-usage)
-#define DECLARE_TO_VEC(TYPE)                                                            \
-    void BackendCUDA::to_vec(const Tensor &tensor, std::vector<TYPE> &data_out) const { \
-        std::visit(                                                                     \
-            [&](auto &&dev_memory) {                                                    \
-                using DT = std::remove_cvref_t<decltype(dev_memory)>;                   \
-                using T = template_parameter_t<DT>;                                     \
-                if constexpr (std::is_same_v<TYPE, T>) {                                \
-                    const auto hm = dev_memory.to_vec();                                \
-                    data_out = dev_memory.to_vec();                                     \
-                } else {                                                                \
-                    TT_EXCEPTION(std::format(                                           \
-                        "Scalar type of tensor {:s} does not match to_vec type {:s}",   \
-                        tensor.dtype(),                                                 \
-                        to_scalar<TYPE>::type                                           \
-                    ));                                                                 \
-                }                                                                       \
-            },                                                                          \
-            tensor.get_storage<StorageCUDA>().dev_memory                                \
-        );                                                                              \
+#define DECLARE_TO_VEC(TYPE)                                                              \
+    void BackendCUDA::to_vec(const Tensor &tensor, std::vector<TYPE> &data_out) const {   \
+        std::visit(                                                                       \
+            [&](auto &&dev_memory) {                                                      \
+                using DT = std::remove_cvref_t<decltype(dev_memory)>;                     \
+                using T = template_parameter_t<DT>;                                       \
+                if constexpr (std::is_same_v<TYPE, T>) {                                  \
+                    const auto hm = dev_memory.to_vec();                                  \
+                    data_out = dev_memory.to_vec();                                       \
+                } else {                                                                  \
+                    TT_EXCEPTION(                                                         \
+                        std::format(                                                      \
+                            "Scalar type of tensor {:s} does not match to_vec type {:s}", \
+                            tensor.dtype(),                                               \
+                            to_scalar<TYPE>::type                                         \
+                        )                                                                 \
+                    );                                                                    \
+                }                                                                         \
+            },                                                                            \
+            tensor.get_storage<StorageCUDA>().dev_memory                                  \
+        );                                                                                \
     }
 
 DECLARE_TO_VEC(kU8CType);

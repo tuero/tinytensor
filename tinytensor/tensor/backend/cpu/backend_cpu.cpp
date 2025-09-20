@@ -4,8 +4,8 @@
 #include "tensor/backend/cpu/backend_cpu.h"
 
 #include <tt/concepts.h>
-#include <tt/random.h>
 #include <tt/exception.h>
+#include <tt/random.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
 
@@ -58,20 +58,38 @@ auto BackendCPU::from_vec(const std::vector<bool> &data, [[maybe_unused]] int de
 auto BackendCPU::from_vec(const std::vector<kU8CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCPU>(data);
 }
+auto BackendCPU::from_vec(std::vector<kU8CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCPU>(std::move(data));
+}
 auto BackendCPU::from_vec(const std::vector<kI16CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCPU>(data);
+}
+auto BackendCPU::from_vec(std::vector<kI16CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCPU>(std::move(data));
 }
 auto BackendCPU::from_vec(const std::vector<kI32CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCPU>(data);
 }
+auto BackendCPU::from_vec(std::vector<kI32CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCPU>(std::move(data));
+}
 auto BackendCPU::from_vec(const std::vector<kI64CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCPU>(data);
+}
+auto BackendCPU::from_vec(std::vector<kI64CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCPU>(std::move(data));
 }
 auto BackendCPU::from_vec(const std::vector<kF32CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCPU>(data);
 }
+auto BackendCPU::from_vec(std::vector<kF32CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCPU>(std::move(data));
+}
 auto BackendCPU::from_vec(const std::vector<kF64CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
     return std::make_unique<StorageCPU>(data);
+}
+auto BackendCPU::from_vec(std::vector<kF64CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
+    return std::make_unique<StorageCPU>(std::move(data));
 }
 auto BackendCPU::from_scalar(const Scalar scalar, [[maybe_unused]] int device_id) const -> StoragePtr {
     return DISPATCH_ALL_TYPES(scalar.dtype(), "BackendCPU::from_scalar", [&]() {
@@ -92,24 +110,26 @@ auto BackendCPU::arange(std::size_t N, ScalarType dtype, [[maybe_unused]] int de
 }
 
 // NOLINTNEXTLINE(*-macro-usage)
-#define DECLARE_TO_VEC(TYPE)                                                           \
-    void BackendCPU::to_vec(const Tensor &tensor, std::vector<TYPE> &data_out) const { \
-        std::visit(                                                                    \
-            [&](auto &&tensor_storage) {                                               \
-                using DT = std::remove_cvref_t<decltype(tensor_storage)>;              \
-                using T = template_parameter_t<DT>;                                    \
-                if constexpr (std::is_same_v<TYPE, T>) {                               \
-                    data_out = tensor_storage;                                         \
-                } else {                                                               \
-                    TT_EXCEPTION(std::format(                                          \
-                        "Scalar type of tensor {:s} does not match to_vec type {:s}",  \
-                        tensor.dtype(),                                                \
-                        to_scalar<TYPE>::type                                          \
-                    ));                                                                \
-                }                                                                      \
-            },                                                                         \
-            tensor.get_storage<StorageCPU>().storage                                   \
-        );                                                                             \
+#define DECLARE_TO_VEC(TYPE)                                                              \
+    void BackendCPU::to_vec(const Tensor &tensor, std::vector<TYPE> &data_out) const {    \
+        std::visit(                                                                       \
+            [&](auto &&tensor_storage) {                                                  \
+                using DT = std::remove_cvref_t<decltype(tensor_storage)>;                 \
+                using T = template_parameter_t<DT>;                                       \
+                if constexpr (std::is_same_v<TYPE, T>) {                                  \
+                    data_out = tensor_storage;                                            \
+                } else {                                                                  \
+                    TT_EXCEPTION(                                                         \
+                        std::format(                                                      \
+                            "Scalar type of tensor {:s} does not match to_vec type {:s}", \
+                            tensor.dtype(),                                               \
+                            to_scalar<TYPE>::type                                         \
+                        )                                                                 \
+                    );                                                                    \
+                }                                                                         \
+            },                                                                            \
+            tensor.get_storage<StorageCPU>().storage                                      \
+        );                                                                                \
     }
 
 DECLARE_TO_VEC(kU8CType);
