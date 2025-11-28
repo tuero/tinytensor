@@ -1,6 +1,12 @@
 file(GLOB_RECURSE HEADER_LIST CONFIGURE_DEPENDS "${tinytensor_SOURCE_DIR}/include/tt/*.h")
 
-add_library(tinytensor STATIC ${HEADER_LIST})
+add_library(tinytensor STATIC ${HEADER_LIST}
+        ../include/tt/jit/Ops.h
+        ../include/tt/jit/Graph.h
+        ../include/tt/jit/OpNode.h
+        tensor/backend/jit/storage_jit.h
+        tensor/backend/jit/backend_jit.h
+        tensor/backend/jit/backend_jit.cpp)
 add_library(tinytensor::tinytensor ALIAS tinytensor)
 
 set_target_properties(tinytensor PROPERTIES 

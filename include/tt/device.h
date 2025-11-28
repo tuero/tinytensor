@@ -15,6 +15,7 @@ namespace tinytensor {
 // Supported backend types
 enum class Backend {
     cpu,
+    jit,
 #ifdef TT_CUDA
     cuda,
 #endif
@@ -24,6 +25,8 @@ constexpr auto to_string(Backend backend) -> std::string {
     switch (backend) {
     case Backend::cpu:
         return "cpu";
+    case Backend::jit:
+        return "jit";
 #ifdef TT_CUDA
     case Backend::cuda:
         return "cuda";
@@ -51,6 +54,7 @@ struct Device {
 
 // Shortnames
 constexpr Device kCPU = Device{.backend = Backend::cpu, .id = 0};
+constexpr Device kJIT = Device{.backend = Backend::jit, .id = 0};
 #ifdef TT_CUDA
 constexpr Device kCUDA = Device{.backend = Backend::cuda, .id = 0};
 #endif
