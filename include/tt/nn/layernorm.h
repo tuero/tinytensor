@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_LAYERNORM_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/shape.h>
@@ -18,7 +19,7 @@
 namespace tinytensor::nn {
 
 // Options for LayerNorm
-struct LayerNormOptions {
+struct TINYTENSOR_EXPORT LayerNormOptions {
     double eps = 1e-5;
     bool affine = true;    // Elementwise learnable affine
     bool bias = true;      // Learnable bias
@@ -26,7 +27,7 @@ struct LayerNormOptions {
 
 // A layernorm layer
 // https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html
-class LayerNorm : public Module {
+class TINYTENSOR_EXPORT LayerNorm : public Module {
 public:
     /**
      * Construct a LayerNorm layer

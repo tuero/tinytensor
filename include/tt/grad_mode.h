@@ -4,10 +4,12 @@
 #ifndef TINYTENSOR_AUTOGRAD_GRAD_MODE_H_
 #define TINYTENSOR_AUTOGRAD_GRAD_MODE_H_
 
+#include <tt/export.h>
+
 namespace tinytensor::autograd {
 
 // Flag for the current grad mode
-class GradMode {
+class TINYTENSOR_EXPORT GradMode {
 public:
     GradMode() = delete;
     static inline bool is_enabled() {
@@ -22,7 +24,7 @@ private:
 };
 
 // Guard which disable autograd tracking while the instantiated object is in scope
-class NoGradGuard {
+class TINYTENSOR_EXPORT NoGradGuard {
 public:
     NoGradGuard()
         : prev_mode(GradMode::is_enabled()) {

@@ -5,6 +5,7 @@
 #define TINYTENSOR_DEVICE_H_
 
 #include <tt/exception.h>
+#include <tt/export.h>
 
 #include <format>
 #include <ostream>
@@ -13,14 +14,14 @@
 namespace tinytensor {
 
 // Supported backend types
-enum class Backend {
+enum class TINYTENSOR_EXPORT Backend {
     cpu,
 #ifdef TT_CUDA
     cuda,
 #endif
 };
 
-constexpr auto to_string(Backend backend) -> std::string {
+TINYTENSOR_EXPORT constexpr auto to_string(Backend backend) -> std::string {
     switch (backend) {
     case Backend::cpu:
         return "cpu";
@@ -33,7 +34,7 @@ constexpr auto to_string(Backend backend) -> std::string {
 }
 
 // Device is an enum backend + device ID (multi-device support)
-struct Device {
+struct TINYTENSOR_EXPORT Device {
 #ifdef TT_CUDA
     constexpr static auto CUDA(int dev_id) -> Device {
         return {.backend = Backend::cuda, .id = dev_id};
@@ -55,14 +56,14 @@ constexpr Device kCPU = Device{.backend = Backend::cpu, .id = 0};
 constexpr Device kCUDA = Device{.backend = Backend::cuda, .id = 0};
 #endif
 
-inline auto operator<<(std::ostream &os, const Device &device) -> std::ostream & {
+TINYTENSOR_EXPORT inline auto operator<<(std::ostream &os, const Device &device) -> std::ostream & {
     os << to_string(device.backend) << ":" << device.id;
     return os;
 }
 }    // namespace tinytensor
 
 template <>
-struct std::formatter<tinytensor::Device> : std::formatter<std::string> {
+struct TINYTENSOR_EXPORT std::formatter<tinytensor::Device> : std::formatter<std::string> {
     auto format(const tinytensor::Device &device, format_context &ctx) const {
         return formatter<string>::format(std::format("{}:{}", to_string(device.backend), device.id), ctx);
     }

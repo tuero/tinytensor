@@ -7,6 +7,7 @@
 #define TINYTENSOR_NN_INSTANCENORM_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -18,7 +19,7 @@
 namespace tinytensor::nn {
 
 // Options for InstanceNorm
-struct InstanceNormOptions {
+struct TINYTENSOR_EXPORT InstanceNormOptions {
     double eps = 1e-5;
     double momentum = 0.1;
     bool affine = false;                 // Whether affine params are learnable
@@ -27,7 +28,7 @@ struct InstanceNormOptions {
 
 // An instance norm over 3d inputs
 // https://pytorch.org/docs/stable/generated/torch.nn.InstanceNorm1d.html
-class InstanceNorm1d : public Module {
+class TINYTENSOR_EXPORT InstanceNorm1d : public Module {
 public:
     /**
      * Construct a InstanceNorm1d layer
@@ -68,7 +69,7 @@ private:
 
 // An instance norm over 4d inputs
 // https://pytorch.org/docs/stable/generated/torch.nn.InstanceNorm2d.html
-class InstanceNorm2d : public Module {
+class TINYTENSOR_EXPORT InstanceNorm2d : public Module {
 public:
     /**
      * Construct a InstanceNorm2d layer

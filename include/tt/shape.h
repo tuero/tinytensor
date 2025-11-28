@@ -4,6 +4,8 @@
 #ifndef TINYTENSOR_SHAPE_H_
 #define TINYTENSOR_SHAPE_H_
 
+#include <tt/export.h>
+
 #include <format>
 #include <initializer_list>
 #include <iostream>
@@ -15,7 +17,7 @@ namespace tinytensor {
 /**
  * Defines the Tensor's shape, and operations between them
  */
-class Shape {
+class TINYTENSOR_EXPORT Shape {
 public:
     Shape() = default;
     explicit Shape(const std::vector<int> &dims);
@@ -120,14 +122,14 @@ private:
     std::vector<int> dims;
 };
 
-auto operator<<(std::ostream &os, const Shape &shape) -> std::ostream &;
+TINYTENSOR_EXPORT auto operator<<(std::ostream &os, const Shape &shape) -> std::ostream &;
 
-auto to_string(const Shape &shape) -> std::string;
+TINYTENSOR_EXPORT auto to_string(const Shape &shape) -> std::string;
 
 }    // namespace tinytensor
 
 template <>
-struct std::formatter<tinytensor::Shape> : std::formatter<std::string> {
+struct TINYTENSOR_EXPORT std::formatter<tinytensor::Shape> : std::formatter<std::string> {
     auto format(const tinytensor::Shape &shape, format_context &ctx) const {
         return formatter<string>::format(std::format("{}", to_string(shape)), ctx);
     }

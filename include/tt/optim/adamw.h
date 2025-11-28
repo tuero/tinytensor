@@ -5,6 +5,7 @@
 #ifndef TINYTENSOR_NN_OPTIMIZER_ADAMW_H_
 #define TINYTENSOR_NN_OPTIMIZER_ADAMW_H_
 
+#include <tt/export.h>
 #include <tt/optim/optimizer.h>
 #include <tt/tensor.h>
 
@@ -14,14 +15,14 @@
 
 namespace tinytensor::optim {
 
-struct AdamWBetas {
+struct TINYTENSOR_EXPORT AdamWBetas {
     double beta1;
     double beta2;
 };
 
 // Options for AdamW
 // @note See https://pytorch.org/docs/stable/generated/torch.optim.AdamW.html
-struct AdamWOptions {
+struct TINYTENSOR_EXPORT AdamWOptions {
     RegularizationMode regularization_mode = RegularizationMode::l2;
     double weight_decay = 0;
     AdamWBetas betas = {.beta1 = 0.9, .beta2 = 0.999};
@@ -30,7 +31,7 @@ struct AdamWOptions {
     bool maximize = false;
 };
 
-class AdamW : public Optimizer {
+class TINYTENSOR_EXPORT AdamW : public Optimizer {
     using TensorRefList = std::vector<std::reference_wrapper<Tensor>>;
 
 public:

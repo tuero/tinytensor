@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_MODULE_LIST_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/tensor.h>
 
@@ -15,7 +16,7 @@
 
 namespace tinytensor::nn {
 
-class ModuleList : public Module {
+class TINYTENSOR_EXPORT ModuleList : public Module {
 private:
     CheckedVec<std::shared_ptr<nn::Module>> modules;
     using Iterator = decltype(modules)::Iterator;
