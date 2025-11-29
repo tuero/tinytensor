@@ -35,7 +35,8 @@ struct OpNegate {
             if constexpr (std::is_same_v<T, uint8_t>) {
                 return val;
             } else {
-                return -val;
+                // Warning of implicit conversion from short to int on negation
+                return static_cast<T>(-val);
             }
         };
     }
