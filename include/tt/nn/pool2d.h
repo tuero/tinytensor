@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_NN_POOL2D_H_
 #define TINYTENSOR_NN_POOL2D_H_
 
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/tensor.h>
 
@@ -13,7 +14,7 @@
 namespace tinytensor::nn {
 
 // A min pooling layer
-class MinPool2d : public Module {
+class TINYTENSOR_EXPORT MinPool2d : public Module {
 public:
     /**
      * Construct a MinPool2d layer
@@ -38,7 +39,7 @@ private:
 };
 
 // A max pooling layer
-class MaxPool2d : public Module {
+class TINYTENSOR_EXPORT MaxPool2d : public Module {
 public:
     /**
      * Construct a MaxPool2d layer
@@ -63,7 +64,7 @@ private:
 };
 
 // A average pooling layer
-class AvgPool2d : public Module {
+class TINYTENSOR_EXPORT AvgPool2d : public Module {
 public:
     /**
      * Construct a AvgPool2d layer

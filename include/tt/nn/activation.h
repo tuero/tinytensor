@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_NN_ACTIVATION_H_
 #define TINYTENSOR_NN_ACTIVATION_H_
 
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/tensor.h>
 
@@ -13,7 +14,7 @@
 namespace tinytensor::nn {
 
 // A sigmoid activation layer layer
-class Sigmoid : public Module {
+class TINYTENSOR_EXPORT Sigmoid : public Module {
 public:
     Sigmoid() = default;
 
@@ -27,7 +28,7 @@ public:
 };
 
 // A log sigmoid activation layer layer
-class LogSigmoid : public Module {
+class TINYTENSOR_EXPORT LogSigmoid : public Module {
 public:
     LogSigmoid() = default;
 
@@ -41,7 +42,7 @@ public:
 };
 
 // A hard sigmoid activation layer layer
-class HardSigmoid : public Module {
+class TINYTENSOR_EXPORT HardSigmoid : public Module {
 public:
     HardSigmoid() = default;
 
@@ -55,7 +56,7 @@ public:
 };
 
 // A softplus activation layer layer
-class Softplus : public Module {
+class TINYTENSOR_EXPORT Softplus : public Module {
 public:
     /**
      * Construct a Softplus activation layer
@@ -79,7 +80,7 @@ private:
 };
 
 // A relu activation layer layer
-class ReLU : public Module {
+class TINYTENSOR_EXPORT ReLU : public Module {
 public:
     ReLU() = default;
 
@@ -93,7 +94,7 @@ public:
 };
 
 // A relu activation layer layer
-class ReLU6 : public Module {
+class TINYTENSOR_EXPORT ReLU6 : public Module {
 public:
     ReLU6() = default;
 
@@ -107,7 +108,7 @@ public:
 };
 
 // A leaky relu activation layer layer
-class LeakyReLU : public Module {
+class TINYTENSOR_EXPORT LeakyReLU : public Module {
 public:
     /**
      * Construct a LeakyReLU activation layer
@@ -129,7 +130,7 @@ private:
 };
 
 // A ELU activation layer layer
-class ELU : public Module {
+class TINYTENSOR_EXPORT ELU : public Module {
 public:
     /**
      * Construct a ELU activation layer
@@ -151,7 +152,7 @@ private:
 };
 
 // A SELU activation layer layer
-class SELU : public Module {
+class TINYTENSOR_EXPORT SELU : public Module {
 public:
     [[nodiscard]] auto forward(const Tensor &input) const -> Tensor;
 
@@ -163,7 +164,7 @@ public:
 };
 
 // A sigmoid linear unit activation layer layer
-class SiLU : public Module {
+class TINYTENSOR_EXPORT SiLU : public Module {
 public:
     [[nodiscard]] auto forward(const Tensor &input) const -> Tensor;
 
@@ -175,7 +176,7 @@ public:
 };
 
 // A tanh activation layer layer
-class Tanh : public Module {
+class TINYTENSOR_EXPORT Tanh : public Module {
 public:
     [[nodiscard]] auto forward(const Tensor &input) const -> Tensor;
 
@@ -187,7 +188,7 @@ public:
 };
 
 // A hard tanh activation layer layer
-class HardTanh : public Module {
+class TINYTENSOR_EXPORT HardTanh : public Module {
 public:
     /**
      * Construct a HardTanh activation layer
@@ -211,7 +212,7 @@ private:
 };
 
 // A softsign activation layer layer
-class Softsign : public Module {
+class TINYTENSOR_EXPORT Softsign : public Module {
 public:
     [[nodiscard]] auto forward(const Tensor &input) const -> Tensor;
 
@@ -223,7 +224,7 @@ public:
 };
 
 // A softmax activation layer layer
-class Softmax : public Module {
+class TINYTENSOR_EXPORT Softmax : public Module {
 public:
     /**
      * Construct a Softmax activation layer

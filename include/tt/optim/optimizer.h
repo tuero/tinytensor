@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_NN_OPTIMIZER_H_
 #define TINYTENSOR_NN_OPTIMIZER_H_
 
+#include <tt/export.h>
 #include <tt/tensor.h>
 
 #include <functional>
@@ -12,12 +13,12 @@
 
 namespace tinytensor::optim {
 
-enum class RegularizationMode {
+enum class TINYTENSOR_EXPORT RegularizationMode {
     l1,
     l2
 };
 
-class Optimizer {
+class TINYTENSOR_EXPORT Optimizer {
 public:
     virtual ~Optimizer() = default;
     Optimizer() = default;

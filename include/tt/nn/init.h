@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_NN_INIT_H_
 #define TINYTENSOR_NN_INIT_H_
 
+#include <tt/export.h>
 #include <tt/tensor.h>
 
 #include <string>
@@ -12,7 +13,7 @@
 
 namespace tinytensor::nn {
 
-enum class GainActivation {
+enum class TINYTENSOR_EXPORT GainActivation {
     linear,
     conv,
     sigmoid,
@@ -22,7 +23,7 @@ enum class GainActivation {
     selu
 };
 
-enum class FanMode {
+enum class TINYTENSOR_EXPORT FanMode {
     fan_in,
     fan_out
 };
@@ -35,7 +36,7 @@ using GainActivationParams = std::unordered_map<std::string, double>;
  * is the size of the output features
  * @return The fan_in and fan_out
  */
-auto calc_fan_in_out(const Tensor &tensor) -> std::tuple<double, double>;
+TINYTENSOR_EXPORT auto calc_fan_in_out(const Tensor &tensor) -> std::tuple<double, double>;
 
 /**
  * Calculate the gain value for the given activation function
@@ -44,7 +45,7 @@ auto calc_fan_in_out(const Tensor &tensor) -> std::tuple<double, double>;
  * @params Optional params, depending on the activation function used
  * @return the gain value
  */
-auto calc_gain(GainActivation gain_activation, const GainActivationParams &params = {}) -> double;
+TINYTENSOR_EXPORT auto calc_gain(GainActivation gain_activation, const GainActivationParams &params = {}) -> double;
 
 /**
  * Initialize the tensor using a Uniform(low, high) distribution
@@ -52,7 +53,7 @@ auto calc_gain(GainActivation gain_activation, const GainActivationParams &param
  * @param low The left end of the interval
  * @param high The right end of the interval
  */
-void uniform_(Tensor tensor, double low, double high);
+TINYTENSOR_EXPORT void uniform_(Tensor tensor, double low, double high);
 
 /**
  * Initialize the tensor using a Normal(mu, std^2) distribution
@@ -60,14 +61,14 @@ void uniform_(Tensor tensor, double low, double high);
  * @param mu The mean of the distribution
  * @param std The variiance of the distribution
  */
-void normal_(Tensor tensor, double low, double high);
+TINYTENSOR_EXPORT void normal_(Tensor tensor, double low, double high);
 
 /**
  * Initialize the tensor with a constant value
  * @param tensor The tensor to initialize
  * @param value The value to initialize with
  */
-void constant_(Tensor tensor, double value);
+TINYTENSOR_EXPORT void constant_(Tensor tensor, double value);
 
 /**
  * Initialize the tensor using Xavier Uniform Initialization
@@ -76,7 +77,7 @@ void constant_(Tensor tensor, double value);
  * @param tensor The tensor to initialize
  * @param gain The gain value (see calc_gain)
  */
-void xavier_uniform_(Tensor tensor, double gain = 1.0);
+TINYTENSOR_EXPORT void xavier_uniform_(Tensor tensor, double gain = 1.0);
 
 /**
  * Initialize the tensor using Xavier Normal Initialization
@@ -85,7 +86,7 @@ void xavier_uniform_(Tensor tensor, double gain = 1.0);
  * @param tensor The tensor to initialize
  * @param gain The gain value (see calc_gain)
  */
-void xavier_normal_(Tensor tensor, double gain = 1.0);
+TINYTENSOR_EXPORT void xavier_normal_(Tensor tensor, double gain = 1.0);
 
 /**
  * Initialize the tensor using Kaiming Uniform Initialization
@@ -96,7 +97,7 @@ void xavier_normal_(Tensor tensor, double gain = 1.0);
  * preserve the magnitude for the backward pass
  * @param gain The gain value (see calc_gain)
  */
-void kaiming_uniform_(Tensor tensor, double gain = 1.0, FanMode fan_mode = FanMode::fan_in);
+TINYTENSOR_EXPORT void kaiming_uniform_(Tensor tensor, double gain = 1.0, FanMode fan_mode = FanMode::fan_in);
 
 /**
  * Initialize the tensor using Kaiming Normal Initialization
@@ -107,7 +108,7 @@ void kaiming_uniform_(Tensor tensor, double gain = 1.0, FanMode fan_mode = FanMo
  * preserve the magnitude for the backward pass
  * @param gain The gain value (see calc_gain)
  */
-void kaiming_normal_(Tensor tensor, double gain = 1.0, FanMode fan_mode = FanMode::fan_in);
+TINYTENSOR_EXPORT void kaiming_normal_(Tensor tensor, double gain = 1.0, FanMode fan_mode = FanMode::fan_in);
 
 }    // namespace tinytensor::nn
 

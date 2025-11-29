@@ -124,6 +124,21 @@ The following configurations have been tested:
 - Ubuntu 24.04: `g++` 13.3.0, `clang++` 18.1.8, `nvcc` 12.6
 - macOS 15.2: `g++` 14.2.0, `clang++` 19.1.6
 
+Both static and shared library builds are offered, 
+which can be controlled throught the CMake cache variable `-DBUILD_SHARED_LIBS=ON`
+
+> [!IMPORTANT]
+> To build with CUDA support, you must set the cmake flag `TT_BUILD_CUDA`:
+```shell
+mkdir build && cd build
+cmake -DTT_BUILD_CUDA=1 ..
+make
+```
+
+### VCPKG
+TODO
+
+### CMake FetchContent
 Add the following to your `CMakeLists.txt`
 ```shell
 include(FetchContent)
@@ -143,16 +158,9 @@ add_executable(main main.cpp)
 target_link_libraries(main tinytensor)
 ```
 
-> [!IMPORTANT]
-> To build with CUDA support, you must set the cmake flag `TT_BUILD_CUDA`:
-```shell
-mkdir build && cd build
-cmake -DTT_BUILD_CUDA=1 ..
-make
-```
 
 ## Building Tests and Examples
-The `CMakePresets.json` defines build options for the tests and exampes. 
+The `CMakePresets.json` defines build options for the tests and examples. 
 - To build tests, the cmake flag `TT_BUILD_TESTS` must be set
 - To build examples, the cmake flag `TT_BUILD_EXAMPLES` must be set
 

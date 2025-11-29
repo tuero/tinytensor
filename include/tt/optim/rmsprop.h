@@ -5,6 +5,7 @@
 #ifndef TINYTENSOR_NN_OPTIMIZER_RMSPROP_H_
 #define TINYTENSOR_NN_OPTIMIZER_RMSPROP_H_
 
+#include <tt/export.h>
 #include <tt/optim/optimizer.h>
 #include <tt/tensor.h>
 
@@ -16,7 +17,7 @@ namespace tinytensor::optim {
 
 // Options for RMSprop
 // @note See https://pytorch.org/docs/stable/generated/torch.optim.RMSprop.html
-struct RMSpropOptions {
+struct TINYTENSOR_EXPORT RMSpropOptions {
     RegularizationMode regularization_mode = RegularizationMode::l2;
     double weight_decay = 0;
     double momentum = 0;
@@ -26,7 +27,7 @@ struct RMSpropOptions {
     bool maximize = false;
 };
 
-class RMSprop : public Optimizer {
+class TINYTENSOR_EXPORT RMSprop : public Optimizer {
     using TensorRefList = std::vector<std::reference_wrapper<Tensor>>;
 
 public:
