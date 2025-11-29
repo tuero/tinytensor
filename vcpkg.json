@@ -1,6 +1,6 @@
 {
   "name": "tinytensor",
-  "version": "$Format:%(describe)$",
+  "version": "1.0.0",
   "maintainers": "Jake Tuero <tuero@ualberta.ca>",
   "description": "A C++ multi-dimensional tensor library with automatic gradient tracking and CUDA acceleration.",
   "homepage": "https://github.com/tuero/tinytensor",
