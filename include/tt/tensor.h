@@ -6,6 +6,7 @@
 
 #include <tt/device.h>
 #include <tt/exception.h>
+#include <tt/export.h>
 #include <tt/index.h>
 #include <tt/random.h>
 #include <tt/scalar.h>
@@ -49,9 +50,9 @@ void calc_grad_input(Tensor &tensor, bool retain_graph);
 void add_grad(Tensor &tensor, const Tensor &grad);
 }    // namespace autograd
 
-// Auxiliary options for Tensors, enables chaining of setting options and storing as a variable for use with multiple
-// Tensor creations
-class TensorOptions {
+// Auxiliary options for Tensors, enables chaining of setting options and
+// storing as a variable for use with multiple Tensor creations
+class TINYTENSOR_EXPORT TensorOptions {
 public:
     TensorOptions() = default;
 
@@ -92,7 +93,7 @@ private:
 };
 
 // Auxiliary options for clamp
-class ClampOptions {
+class TINYTENSOR_EXPORT ClampOptions {
 public:
     template <IsScalarType T>
     auto min(T min_value) -> ClampOptions & {
@@ -119,7 +120,7 @@ private:
 };
 
 // Multi-Dimensional Tensor class
-class Tensor {
+class TINYTENSOR_EXPORT Tensor {
 public:
     /**
      * Construct from a vector
@@ -199,7 +200,8 @@ public:
 
     /**
      * Set the internal data from another tensor
-     * @note This is useful to change the underlying state while keeping external references valid
+     * @note This is useful to change the underlying state while keeping external
+     * references valid
      * @param other The other Tensor to set from
      */
     void set_from(const Tensor &other);
@@ -213,9 +215,10 @@ public:
 
     /**
      * Deserialize the given data to replace the contents of the current tensor
-     * @note This change will NOT reflect to other references/views of the current tensor
-     * @note The underlying dtype of the tensor may also change, depending on the contents of the serialized data, but
-     * the underlying device will NOT change
+     * @note This change will NOT reflect to other references/views of the current
+     * tensor
+     * @note The underlying dtype of the tensor may also change, depending on the
+     * contents of the serialized data, but the underlying device will NOT change
      * @param serialized_data The serialized tensor
      */
     void deserialize(const std::vector<char> &serialized_data);
@@ -274,8 +277,8 @@ public:
 
     /**
      * Return a copy with the same values but contiguous storage
-     * @note If the Tensor is already contiguous, a shallow copy of self is performed with the resulting Tensor
-     * containing the same underlying storage
+     * @note If the Tensor is already contiguous, a shallow copy of self is
+     * performed with the resulting Tensor containing the same underlying storage
      */
     [[nodiscard]] auto contiguous() const -> Tensor;
 
@@ -312,8 +315,9 @@ public:
 
     /**
      * Cast the underlying storage to the given scalar type
-     * @note If the Tensor is already the given scalar type, a shallow copy of self is performed with the resulting
-     * Tensor containing the same underlying storage
+     * @note If the Tensor is already the given scalar type, a shallow copy of
+     * self is performed with the resulting Tensor containing the same underlying
+     * storage
      * @param dtype The scalar type to cast the storage to
      * @return The casted Tensor
      */
@@ -328,34 +332,38 @@ public:
     [[nodiscard]] auto to(Device device) const -> Tensor;
 
     /**
-     * Return a deep clone of the Tensor with same values but separate underlying storage
+     * Return a deep clone of the Tensor with same values but separate underlying
+     * storage
      * @note This is an autograd-aware operation
      */
     [[nodiscard]] auto clone() const -> Tensor;
 
     /**
      * Return a new tensor that is removed from the computation graph
-     * @note This does not share the underlying data, so inplace operations are safe on the returned tensor
+     * @note This does not share the underlying data, so inplace operations are
+     * safe on the returned tensor
      */
     [[nodiscard]] auto detach() const -> Tensor;
 
     /**
-     * Get address of the underlying pointer, helpful to check if tensor points to the same storage after various
-     * operations
+     * Get address of the underlying pointer, helpful to check if tensor points to
+     * the same storage after various operations
      */
     [[nodiscard]] auto data_ptr() const -> uintptr_t;
 
     /**
      * Get the version count of the Tensor
-     * Inplace operations will increment the version count, with Tensors created with version_count = 0
-     * @TODO: This may not actually be needed as we do disable inplace ops on tensors requiring grads
+     * Inplace operations will increment the version count, with Tensors created
+     * with version_count = 0
+     * @TODO: This may not actually be needed as we do disable inplace ops on
+     * tensors requiring grads
      */
     [[nodiscard]] auto version_count() const -> int;
 
     /**
      * Get the underlying values as a flattened vector
-     * @note This will cast the underlying data element by element to the casted type, irrespective of the underlying
-     * storage type
+     * @note This will cast the underlying data element by element to the casted
+     * type, irrespective of the underlying storage type
      */
     template <typename T>
         requires(IsScalarType<T> || std::is_same_v<T, bool>)
@@ -389,13 +397,15 @@ public:
 
     /**
      * Assign all values of the Tensor to the given Scalar
-     * @note Since this is an in-place operation, this will throw an exception on tensors requiring grads
+     * @note Since this is an in-place operation, this will throw an exception on
+     * tensors requiring grads
      */
     auto operator=(const Scalar &rhs) -> Tensor &;
 
     /**
      * Assign all values of the Tensor to the given Scalar
-     * @note Since this is an in-place operation, this will throw an exception on tensors requiring grads
+     * @note Since this is an in-place operation, this will throw an exception on
+     * tensors requiring grads
      */
     auto fill_(const Scalar &rhs) -> Tensor &;
 
@@ -406,9 +416,11 @@ public:
     auto operator=(Tensor &&rhs) & -> Tensor &;
 
     /**
-     * Assignment on rvalues will assign the rhs data into the self view, to allow indexing with assignment
-     * If RHS is a different type than self, it will be casted to match the self scalar type
-     * @note Since this is an in-place operation, this will throw an exception on tensors requiring grads
+     * Assignment on rvalues will assign the rhs data into the self view, to allow
+     * indexing with assignment If RHS is a different type than self, it will be
+     * casted to match the self scalar type
+     * @note Since this is an in-place operation, this will throw an exception on
+     * tensors requiring grads
      */
     auto operator=(const Tensor &rhs) && -> Tensor &;
     auto operator=(Tensor &&rhs) && -> Tensor &;
@@ -416,7 +428,8 @@ public:
     /**
      * Element-wise inplace arithmetic
      * This will cast RHS to the type of LHS
-     * @note Since this is an in-place operation, this will throw an exception on tensors requiring grads
+     * @note Since this is an in-place operation, this will throw an exception on
+     * tensors requiring grads
      */
     template <IsScalarType T>
     auto operator+=(T rhs) -> Tensor & {
@@ -457,8 +470,10 @@ public:
 
     /**
      * Index tensor with either an integer index or Slice
-     * @note This will always return a view of the Tensor, sharing the underlying storage
-     * @note Indexing a 1D Tensor will return another 1D Tensor, unlike Torch which returns scalar values
+     * @note This will always return a view of the Tensor, sharing the underlying
+     * storage
+     * @note Indexing a 1D Tensor will return another 1D Tensor, unlike Torch
+     * which returns scalar values
      * @index The Index (integer or Slice)
      * @return The indexed Tensor
      */
@@ -466,8 +481,10 @@ public:
 
     /**
      * Index tensor with a mixed sequence of integer indices or Slices
-     * @note This will always return a view of the Tensor, sharing the underlying storage
-     * @note Indexing a 1D Tensor will return another 1D Tensor, unlike Torch which returns scalar values
+     * @note This will always return a view of the Tensor, sharing the underlying
+     * storage
+     * @note Indexing a 1D Tensor will return another 1D Tensor, unlike Torch
+     * which returns scalar values
      * @indices The indices (integers and/or Slices)
      * @return The indexed Tensor
      */
@@ -536,16 +553,18 @@ public:
 
     /**
      * Perform backward pass computing gradients starting from this Tensor
-     * @param grad The gradient of the function with respect to the current Tensor. If ommitted, it will default to
-     * ones_like(self)
-     * @param retain_graph If false, will free the underlying computation graph after performing backward pass
+     * @param grad The gradient of the function with respect to the current
+     * Tensor. If ommitted, it will default to ones_like(self)
+     * @param retain_graph If false, will free the underlying computation graph
+     * after performing backward pass
      */
     void backward(const std::optional<Tensor> &grad = {}, bool retain_graph = false);
 
     /**
      * Check if the current Tensor is a leaf
      * Tensors with requires_grad=False are leaf tensors
-     * Tensors with requires_grad=True and are not results of autograd ops are also leaf tensors
+     * Tensors with requires_grad=True and are not results of autograd ops are
+     * also leaf tensors
      */
     [[nodiscard]] auto is_leaf() const -> bool;
 
@@ -554,23 +573,27 @@ public:
     // ------------------------------------------------
 
     /**
-     * Expands the Tensor to the given shape, which can include a larger number of dimensions
-     * New dimensions are appended to the front, and any non-singleton existing dimension must match the expanded-to
-     * dimension
-     * @note: This will always return a view of the Tensor, sharing the underlying storage
+     * Expands the Tensor to the given shape, which can include a larger number of
+     * dimensions New dimensions are appended to the front, and any non-singleton
+     * existing dimension must match the expanded-to dimension
+     * @note: This will always return a view of the Tensor, sharing the underlying
+     * storage
      * @note: This is equivalent to calling expand(tensor, shape)
-     * @note: See https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html
+     * @note: See
+     * https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html
      * @param shape The shape to expand to
      * @return View of the expanded Tensor
      */
     [[nodiscard]] auto broadcast_to(const Shape &shape) const -> Tensor;
 
     /**
-     * Expands the Tensor to the given shape, which can include a larger number of dimensions
-     * New dimensions are appended to the front, and any non-singleton existing dimension must match the expanded-to
-     * dimension
-     * @note: This will always return a view of the Tensor, sharing the underlying storage
-     * @note: See https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html
+     * Expands the Tensor to the given shape, which can include a larger number of
+     * dimensions New dimensions are appended to the front, and any non-singleton
+     * existing dimension must match the expanded-to dimension
+     * @note: This will always return a view of the Tensor, sharing the underlying
+     * storage
+     * @note: See
+     * https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html
      * @param shape The shape to expand to
      * @return View of the expanded Tensor
      */
@@ -579,7 +602,8 @@ public:
     /**
      * Removes a dimension of size one at a given dimension location to the Tensor
      * @note: This has the same view or copy properties as reshape
-     * @note: If the given dimension to squeeze is not of size 1, the Tensor is unchanged
+     * @note: If the given dimension to squeeze is not of size 1, the Tensor is
+     * unchanged
      * @param dim The index to remove the singleton dimension
      * @return View of the Tensor with removed dimension
      */
@@ -594,16 +618,20 @@ public:
     [[nodiscard]] auto unsqueeze(int dim) const -> Tensor;
 
     /**
-     * Reshapes the Tensor to the specified shape, keeping the same underlying data and number of elements
-     * @note: This will return a view of the Tensor if possible (i.e. contiguous), or a copy of the underlying storage
+     * Reshapes the Tensor to the specified shape, keeping the same underlying
+     * data and number of elements
+     * @note: This will return a view of the Tensor if possible (i.e. contiguous),
+     * or a copy of the underlying storage
      * @param shape The shape of the resulting Tensor to reshape to
      * @return The reshaped Tensor
      */
     [[nodiscard]] auto reshape(const Shape &shape) const -> Tensor;
 
     /**
-     * Flattens the Tensor into a one-dimensional Tensor, equivalent to reshape({tensor.numel()}),
-     * @note: If start_dim and end_dim are given, only dimensions between start/end are flattened
+     * Flattens the Tensor into a one-dimensional Tensor, equivalent to
+     * reshape({tensor.numel()}),
+     * @note: If start_dim and end_dim are given, only dimensions between
+     * start/end are flattened
      * @note: This has the same view or copy properties as reshape
      * @param start_dim Starting dim to flatten
      * @param end_dim Ending dim to flatten
@@ -613,8 +641,10 @@ public:
 
     /**
      * Permutes the Tensor along its dimensions
-     * @note: This will always return a view of the Tensor, sharing the underlying storage
-     * @param dims The permutation of the input tensor dimensions the new Tensor should take
+     * @note: This will always return a view of the Tensor, sharing the underlying
+     * storage
+     * @param dims The permutation of the input tensor dimensions the new Tensor
+     * should take
      * @return View of the permuted Tensor
      */
     [[nodiscard]] auto permute(const std::vector<int> &dims) const -> Tensor;
@@ -798,7 +828,8 @@ public:
     auto lgamma_() -> Tensor &;
 
     /**
-     * Performs element-wise digamma function (derivative of log gamma) of the input Tensor
+     * Performs element-wise digamma function (derivative of log gamma) of the
+     * input Tensor
      * @note https://en.wikipedia.org/wiki/Digamma_function
      * @note This function does not currently have autograd support
      * @return reference to self
@@ -854,7 +885,8 @@ public:
 
     /**
      * Performs element-wise softplus of the input Tensor
-     * @note Softplus is a smooth approximation of the ReLU function (always positive)
+     * @note Softplus is a smooth approximation of the ReLU function (always
+     * positive)
      * @note https://pytorch.org/docs/stable/generated/torch.nn.Softplus.html
      * @param beta The beta value for Softplus
      * @param threshold Values above this revert to a linear function
@@ -879,7 +911,8 @@ public:
     /**
      * Performs element-wise LeakyReLU of the input Tensor
      * @note https://pytorch.org/docs/stable/generated/torch.nn.LeakyReLU.html
-     * @param negative_slop The cangle of the negative slope, used for negative inputs
+     * @param negative_slop The cangle of the negative slope, used for negative
+     * inputs
      * @return reference to self
      */
     auto leaky_relu_(double negative_slope = 0.01) -> Tensor &;
@@ -924,7 +957,8 @@ public:
 
     /**
      * Performs element-wise softmax over a dimension of the input Tensor
-     * @note The elements along the given dimension are rescaled so that they lie in the range [0,1] and sum to 1
+     * @note The elements along the given dimension are rescaled so that they lie
+     * in the range [0,1] and sum to 1
      * @note https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
      * @param dim The dimension along which the Softmax will be computed
      * @return reference to self
@@ -1044,7 +1078,8 @@ public:
     // ------------------------------------------------
 
     /**
-     * Set the Tensor with values sampled from a uniform real distribution over the interval [low, high)
+     * Set the Tensor with values sampled from a uniform real distribution over
+     * the interval [low, high)
      * @note requires low < high
      * @note The current Tensor must be of floating point type
      * @param low The inclusive left end of the interval
@@ -1054,8 +1089,9 @@ public:
     auto uniform_real_(double low, double high, Generator &gen = get_default_generator()) -> Tensor &;
 
     /**
-     * Set the Tensor with values sampled from a uniform real distribution over the interval [low, high), where the
-     * shape and type are from the the same values of low and high
+     * Set the Tensor with values sampled from a uniform real distribution over
+     * the interval [low, high), where the shape and type are from the the same
+     * values of low and high
      * @note requires low < high for each element in the Tensors
      * @note The current Tensor must be of floating point type
      * @param low The inclusive left end of the interval
@@ -1065,7 +1101,8 @@ public:
     auto uniform_real_(const Tensor &low, const Tensor &high, Generator &gen = get_default_generator()) -> Tensor &;
 
     /**
-     * Set the Tensor with values sampled from a uniform real distribution over the interval [low, high)
+     * Set the Tensor with values sampled from a uniform real distribution over
+     * the interval [low, high)
      * @note requires low < high
      * @note The current Tensor must be of floating point type
      * @param low The inclusive left end of the interval
@@ -1075,7 +1112,8 @@ public:
     auto uniform_int_(int64_t low, int64_t high, Generator &gen = get_default_generator()) -> Tensor &;
 
     /**
-     * Set the Tensor with values sampled from a uniform int distribution over the interval [low, high)
+     * Set the Tensor with values sampled from a uniform int distribution over the
+     * interval [low, high)
      * @note requires low < high for each element in the Tensors
      * @note The current Tensor must be of floating point type
      * @param low The inclusive left end of the interval
@@ -1122,7 +1160,8 @@ public:
 
     /**
      * Set the Tensor with values sampled from a Geometric distribution
-     * @note Uses representation of X Bernoulli trials to get one success, support = {1, 2, 3, ...}
+     * @note Uses representation of X Bernoulli trials to get one success, support
+     * = {1, 2, 3, ...}
      * @note p must be in range (0, 1]
      * @param p The probability of success
      * @param gen The generator source of randomness
@@ -1131,7 +1170,8 @@ public:
 
     /**
      * Set the Tensor with values sampled from a Geometric distribution
-     * @note Uses representation of X Bernoulli trials to get one success, support = {1, 2, 3, ...}
+     * @note Uses representation of X Bernoulli trials to get one success, support
+     * = {1, 2, 3, ...}
      * @note p must be in range (0, 1]
      * @param p The probability of success
      * @param gen The generator source of randomness
@@ -1186,17 +1226,20 @@ public:
      * Set the Tensor with values sampled from a Cauchy distribution
      * @note See https://en.wikipedia.org/wiki/Cauchy_distribution
      * @param loc The mode/median of the distribution
-     * @param scale The scale parameter, which is the half-width at maximum, must be > 0
+     * @param scale The scale parameter, which is the half-width at maximum, must
+     * be > 0
      * @param gen The generator source of randomness
      */
     auto cauchy_(double loc, double scale, Generator &gen = get_default_generator()) -> Tensor &;
 
     /**
-     * Set the Tensor with values sampled from a Cauchy distribution, where the shape is determined by loc/scale and
-     * the type is the promoted type between loc, scale, and kDefaultInt
+     * Set the Tensor with values sampled from a Cauchy distribution, where the
+     * shape is determined by loc/scale and the type is the promoted type between
+     * loc, scale, and kDefaultInt
      * @note See https://en.wikipedia.org/wiki/Cauchy_distribution
      * @param loc The mode/median of the distribution
-     * @param scale The scale parameter, which is the half-width at maximum, must be > 0
+     * @param scale The scale parameter, which is the half-width at maximum, must
+     * be > 0
      * @param gen The generator source of randomness
      */
     auto cauchy_(const Tensor &loc, const Tensor &scale, Generator &gen = get_default_generator()) -> Tensor &;
@@ -1204,7 +1247,8 @@ public:
     /**
      * Set the Tensor with values sampled from a Log-Normal distribution
      * @param mu The mean of the underlying normal distribution
-     * @param std The standard deviation of the underlying normal distribution, must be > 0
+     * @param std The standard deviation of the underlying normal distribution,
+     * must be > 0
      * @param gen The generator source of randomness
      */
     auto lognormal_(double mu, double std, Generator &gen = get_default_generator()) -> Tensor &;
@@ -1212,7 +1256,8 @@ public:
     /**
      * Set the Tensor with values sampled from a Log-Normal distribution
      * @param mu The mean of the underlying normal distribution
-     * @param std The standard deviation of the underlying normal distribution, must be > 0
+     * @param std The standard deviation of the underlying normal distribution,
+     * must be > 0
      * @param gen The generator source of randomness
      */
     auto lognormal_(const Tensor &mu, const Tensor &std, Generator &gen = get_default_generator()) -> Tensor &;
@@ -1249,7 +1294,8 @@ public:
     /**
      * Performs the minimum of each element over a dimension of the input Tensor
      * @param dim The dimension to take the minimum over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto min(int dim, bool keep_dim = false) const -> Tensor;
@@ -1257,7 +1303,8 @@ public:
     /**
      * Performs the minimum of each element over a dimension of the input Tensor
      * @param dims The dimensions to take the minimum over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto min(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
@@ -1269,17 +1316,21 @@ public:
     [[nodiscard]] auto argmin() const -> Tensor;
 
     /**
-     * Performs the indices of the minimum elements over a dimension of the input Tensor
+     * Performs the indices of the minimum elements over a dimension of the input
+     * Tensor
      * @param dim The dimension to take the index of minimums over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto argmin(int dim, bool keep_dim = false) const -> Tensor;
 
     /**
-     * Performs the indices of the minimum elements over a dimension of the input Tensor
+     * Performs the indices of the minimum elements over a dimension of the input
+     * Tensor
      * @param dims The dimensions to take the index of minimums over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto argmin(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
@@ -1293,7 +1344,8 @@ public:
     /**
      * Performs the maximum of each element over a dimension of the input Tensor
      * @param dim The dimension to take the maximum over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto max(int dim, bool keep_dim = false) const -> Tensor;
@@ -1301,7 +1353,8 @@ public:
     /**
      * Performs the maximum of each element over a dimension of the input Tensor
      * @param dims The dimensions to take the maximum over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto max(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
@@ -1313,17 +1366,21 @@ public:
     [[nodiscard]] auto argmax() const -> Tensor;
 
     /**
-     * Performs the indices of the maximum elements over a dimension of the input Tensor
+     * Performs the indices of the maximum elements over a dimension of the input
+     * Tensor
      * @param dim The dimension to take the index of maximums over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto argmax(int dim, bool keep_dim = false) const -> Tensor;
 
     /**
-     * Performs the indices of the maximum elements over a dimension of the input Tensor
+     * Performs the indices of the maximum elements over a dimension of the input
+     * Tensor
      * @param dims The dimensions to take the index of maximums over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto argmax(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
@@ -1337,7 +1394,8 @@ public:
     /**
      * Performs the sum of each element over a dimension of the input Tensor
      * @param dim The dimension to take the sum over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto sum(int dim, bool keep_dim = false) const -> Tensor;
@@ -1345,7 +1403,8 @@ public:
     /**
      * Performs the sum of each element over a dimension of the input Tensor
      * @param dims The dimensions to take the sum over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto sum(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
@@ -1359,7 +1418,8 @@ public:
     /**
      * Performs the mean of each element over a dimension of the input Tensor
      * @param dim The dimension to take the mean over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto mean(int dim, bool keep_dim = false) const -> Tensor;
@@ -1367,15 +1427,18 @@ public:
     /**
      * Performs the mean of each element over a dimension of the input Tensor
      * @param dims The dimensions to take the mean over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto mean(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
 
     /**
      * Compute the variance of the input
-     * @param keep_dim Whether the result has the reduction dimension retained or not
-     * @param correction Difference between sample size and sampel degrees of freedom
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
+     * @param correction Difference between sample size and sampel degrees of
+     * freedom
      * @return the resulting Tensor
      */
     [[nodiscard]] auto var(bool keep_dim = false, int correction = 1) const -> Tensor;
@@ -1383,8 +1446,10 @@ public:
     /**
      * Compute the variance of the input over a given dimension
      * @param dim The dimension to reduce over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
-     * @param correction Difference between sample size and sampel degrees of freedom
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
+     * @param correction Difference between sample size and sampel degrees of
+     * freedom
      * @return the resulting Tensor
      */
     [[nodiscard]] auto var(int dim, bool keep_dim = false, int correction = 1) const -> Tensor;
@@ -1392,8 +1457,10 @@ public:
     /**
      * Compute the variance of the input over a given dimension
      * @param dims The dimensions to reduce over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
-     * @param correction Difference between sample size and sampel degrees of freedom
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
+     * @param correction Difference between sample size and sampel degrees of
+     * freedom
      * @return the resulting Tensor
      */
     [[nodiscard]] auto var(const std::vector<int> &dims, bool keep_dim = false, int correction = 1) const -> Tensor;
@@ -1407,7 +1474,8 @@ public:
      * Tests if all elements evaluate to true over a dimension of the input Tensor
      * @note The type of the returned Tensor is kBool
      * @param dim The dimension to take the reduce over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto all(int dim, bool keep_dim = false) const -> Tensor;
@@ -1416,7 +1484,8 @@ public:
      * Tests if all elements evaluate to true over a dimension of the input Tensor
      * @note The type of the returned Tensor is kBool
      * @param dims The dimensions to take the reduce over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto all(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
@@ -1430,7 +1499,8 @@ public:
      * Tests if any element evaluates to true over a dimension of the input Tensor
      * @note The type of the returned Tensor is kBool
      * @param dim The dimension to take the reduce over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto any(int dim, bool keep_dim = false) const -> Tensor;
@@ -1439,7 +1509,8 @@ public:
      * Tests if any element evaluates to true over a dimension of the input Tensor
      * @note The type of the returned Tensor is kBool
      * @param dims The dimensions to take the reduce over
-     * @param keep_dim Whether the result has the reduction dimension retained or not
+     * @param keep_dim Whether the result has the reduction dimension retained or
+     * not
      * @return Resulting Tensor
      */
     [[nodiscard]] auto any(const std::vector<int> &dims, bool keep_dim = false) const -> Tensor;
@@ -1449,7 +1520,8 @@ public:
     // ------------------------------------------------
 
     /**
-     * Clamps all elements inplace into the range [min, max] given by the ClampOptions
+     * Clamps all elements inplace into the range [min, max] given by the
+     * ClampOptions
      * @param options Clamp options holding min/max values
      * @return reference to self
      */
@@ -1482,7 +1554,7 @@ public:
 
 private:
     // Friends
-    friend std::ostream &operator<<(std::ostream &os, const Tensor &tensor);
+    friend TINYTENSOR_EXPORT std::ostream &operator<<(std::ostream &os, const Tensor &tensor);
 
     template <typename T>
     friend struct autograd::TensorFunction;
@@ -1505,9 +1577,10 @@ private:
     mutable int version_count_ = 0;
 };
 
-// Extension for vector of tensors, supports negative indexing and bounds checking by default
+// Extension for vector of tensors, supports negative indexing and bounds
+// checking by default
 template <typename T>
-class CheckedVec {
+class TINYTENSOR_EXPORT CheckedVec {
     std::vector<T> data_;
 
 public:
@@ -1593,7 +1666,8 @@ public:
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The value filled tensor
  */
-[[nodiscard]] auto full(Scalar value, Shape shape, Device device, bool requires_grad = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto full(Scalar value, Shape shape, Device device, bool requires_grad = false)
+    -> Tensor;
 
 /**
  * Create a Tensor of a given size, filled with a given value
@@ -1606,7 +1680,8 @@ public:
  */
 template <typename T>
     requires(IsScalarType<T> || std::is_same_v<T, bool>)
-[[nodiscard]] auto full(T value, Shape shape, ScalarType dtype, Device device, bool requires_grad = false) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    full(T value, Shape shape, ScalarType dtype, Device device, bool requires_grad = false) -> Tensor {
     return full(Scalar(value, dtype), shape, device, requires_grad);
 }
 
@@ -1620,7 +1695,7 @@ template <typename T>
  */
 template <typename T>
     requires(IsScalarType<T> || std::is_same_v<T, bool>)
-[[nodiscard]] auto full(T value, Shape shape, Device device, bool requires_grad = false) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto full(T value, Shape shape, Device device, bool requires_grad = false) -> Tensor {
     return full(Scalar(value), shape, device, requires_grad);
 }
 
@@ -1628,12 +1703,13 @@ template <typename T>
  * Create a Tensor of a given size, filled with a given value
  * @param value The value to fill
  * @param shape The shape of the desired Tensor
- * @param options The Tensor options of scalar type and device of the desired Tensor
+ * @param options The Tensor options of scalar type and device of the desired
+ * Tensor
  * @return The value filled tensor
  */
 template <typename T>
     requires(IsScalarType<T> || std::is_same_v<T, bool>)
-[[nodiscard]] auto full(T value, Shape shape, const TensorOptions &options) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto full(T value, Shape shape, const TensorOptions &options) -> Tensor {
     return full(Scalar(value, options.dtype()), shape, options.device(), options.requires_grad());
 }
 
@@ -1645,23 +1721,26 @@ template <typename T>
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The zero filled Tensor
  */
-[[nodiscard]] auto zeros(Shape shape, ScalarType dtype, Device device, bool requires_grad = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto zeros(Shape shape, ScalarType dtype, Device device, bool requires_grad = false)
+    -> Tensor;
 
 /**
  * Create a Tensor filled with the value 0
  * @param shape The shape of the desired Tensor
- * @param options The Tensor options of scalar type and device of the desired Tensor
+ * @param options The Tensor options of scalar type and device of the desired
+ * Tensor
  * @return The zero filled Tensor
  */
-[[nodiscard]] auto zeros(Shape shape, const TensorOptions &options = TensorOptions()) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto zeros(Shape shape, const TensorOptions &options = TensorOptions()) -> Tensor;
 
 /**
- * Create a Tensor filled with the value 0 with the same shape, scalar type, and device of the given Tensor
+ * Create a Tensor filled with the value 0 with the same shape, scalar type, and
+ * device of the given Tensor
  * @param tensor The reference Tensor
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The zero filled Tensor
  */
-[[nodiscard]] auto zeros_like(const Tensor &tensor, bool requires_grad = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto zeros_like(const Tensor &tensor, bool requires_grad = false) -> Tensor;
 
 /**
  * Create a Tensor filled with the value 1
@@ -1671,55 +1750,64 @@ template <typename T>
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The ones filled Tensor
  */
-[[nodiscard]] auto ones(Shape shape, ScalarType dtype, Device device, bool requires_grad = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto ones(Shape shape, ScalarType dtype, Device device, bool requires_grad = false)
+    -> Tensor;
 
 /**
  * Create a Tensor filled with the value 1
  * @param shape The shape of the desired Tensor
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @return The ones filled Tensor
  */
-[[nodiscard]] auto ones(Shape shape, const TensorOptions &options = TensorOptions()) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto ones(Shape shape, const TensorOptions &options = TensorOptions()) -> Tensor;
 
 /**
- * Create a Tensor filled with the value 1 with the same shape, scalar type, and device of the given Tensor
+ * Create a Tensor filled with the value 1 with the same shape, scalar type, and
+ * device of the given Tensor
  * @param tensor The reference Tensor
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The ones filled Tensor
  */
-[[nodiscard]] auto ones_like(const Tensor &tensor, bool requires_grad = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto ones_like(const Tensor &tensor, bool requires_grad = false) -> Tensor;
 
 /**
- * Create a Tensor filled with values [0, n), where n is determined by the number of elements in the given shape
+ * Create a Tensor filled with values [0, n), where n is determined by the
+ * number of elements in the given shape
  * @param shape The shape of the desired Tensor
  * @param dtype The scalar type of the desired Tensor
  * @param device The device of the desried Tensor
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The Tensor
  */
-[[nodiscard]] auto arange(Shape shape, ScalarType dtype, Device device, bool requires_grad = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto arange(Shape shape, ScalarType dtype, Device device, bool requires_grad = false)
+    -> Tensor;
 
 /**
- * Create a Tensor filled with values [0, n), where n is determined by the number of elements in the given shape
+ * Create a Tensor filled with values [0, n), where n is determined by the
+ * number of elements in the given shape
  * @param shape The shape of the desired Tensor
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @return The Tensor
  */
-[[nodiscard]] auto arange(Shape shape, const TensorOptions &options = TensorOptions(kDefaultInt)) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto arange(Shape shape, const TensorOptions &options = TensorOptions(kDefaultInt))
+    -> Tensor;
 
 /**
- * Create a Tensor filled with N values over an evenly-spaced interval, where N is determined by the number of elements
- * in the given shape
+ * Create a Tensor filled with N values over an evenly-spaced interval, where N
+ * is determined by the number of elements in the given shape
  * @param start The start of the interval
  * @param stop The end of the interval
- * @param endpoint True for stop to be the last sample, false for it to not be included
+ * @param endpoint True for stop to be the last sample, false for it to not be
+ * included
  * @param shape The shape of the desired Tensor
  * @param dtype The scalar type of the desired Tensor
  * @param device The device of the desried Tensor
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The Tensor
  */
-[[nodiscard]] auto linspace(
+[[nodiscard]] TINYTENSOR_EXPORT auto linspace(
     double start,
     double stop,
     bool endpoint,
@@ -1730,16 +1818,18 @@ template <typename T>
 ) -> Tensor;
 
 /**
- * Create a Tensor filled with N values over an evenly-spaced interval, where N is determined by the number of elements
- * in the given shape
+ * Create a Tensor filled with N values over an evenly-spaced interval, where N
+ * is determined by the number of elements in the given shape
  * @param start The start of the interval
  * @param stop The end of the interval
- * @param endpoint True for stop to be the last sample, false for it to not be included
+ * @param endpoint True for stop to be the last sample, false for it to not be
+ * included
  * @param shape The shape of the desired Tensor
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @return The Tensor
  */
-[[nodiscard]] auto linspace(
+[[nodiscard]] TINYTENSOR_EXPORT auto linspace(
     double start,
     double end,
     bool endpoint,
@@ -1756,25 +1846,29 @@ template <typename T>
  * @param requires_grad Flag if autograd operations should be recorded
  * @return The Tensor
  */
-[[nodiscard]] auto eye(int rows, int cols, ScalarType dtype, Device device, bool requires_grad = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    eye(int rows, int cols, ScalarType dtype, Device device, bool requires_grad = false) -> Tensor;
 
 /**
  * Create a 2D Tensor ones on the main diagonal, zeros elsewhere
  * @param rows The number of rows
  * @param cols The number of columns
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @return The Tensor
  */
-[[nodiscard]] auto eye(int rows, int cols, const TensorOptions &options = TensorOptions(kDefaultInt)) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto eye(int rows, int cols, const TensorOptions &options = TensorOptions(kDefaultInt))
+    -> Tensor;
 
 /**
- * Create a 2D Tensor with zeros everywhere except where the index of the innermost dim matches the corresponding value
+ * Create a 2D Tensor with zeros everywhere except where the index of the
+ * innermost dim matches the corresponding value
  * @note The given indices tensor should be of integral scalar type
- * @param num_classes The maximum number of classes (i.e. the number of columns), use -1 to use the maximum of the
- * passed indices
+ * @param num_classes The maximum number of classes (i.e. the number of
+ * columns), use -1 to use the maximum of the passed indices
  * @return The Tensor
  */
-[[nodiscard]] auto one_hot(Tensor indices, int num_classes) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto one_hot(Tensor indices, int num_classes) -> Tensor;
 
 // ------------------------------------------------------------
 // Tensor Joining
@@ -1789,50 +1883,58 @@ template <typename T>
  * @param dim The dimension to concatenate into
  * @return The concatenated Tensor
  */
-[[nodiscard]] auto cat(const TensorList &tensors, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto cat(const TensorList &tensors, int dim) -> Tensor;
 
 /**
- * Concatenates the list of Tensors into the given dimension into an existing Tensor
- * All Tensors must have the same shape, except for the concatenating dimension
+ * Concatenates the list of Tensors into the given dimension into an existing
+ * Tensor All Tensors must have the same shape, except for the concatenating
+ * dimension
  * @note See https://pytorch.org/docs/main/generated/torch.cat.html
  * @param tensors The list of tensors to concatenate
  * @param dim The dimension to concatenate into
- * @param out The output Tensor, which must have the same number of elements as the sum of elements in the given
- * list
+ * @param out The output Tensor, which must have the same number of elements as
+ * the sum of elements in the given list
  */
-void cat(const TensorList &tensors, int dim, Tensor &out);
+void TINYTENSOR_EXPORT cat(const TensorList &tensors, int dim, Tensor &out);
 
 /**
  * Concatenates the list of Tensors into a new given dimension
  * All Tensors must have the same shape
- * @note This is equivalent to unsqueezing all Tensors using the given dim then concatenating
+ * @note This is equivalent to unsqueezing all Tensors using the given dim then
+ * concatenating
  * @note This will allocate new memory for the combined elements
- * @note See https://pytorch.org/docs/main/generated/torch.stack.html#torch.stack
+ * @note See
+ * https://pytorch.org/docs/main/generated/torch.stack.html#torch.stack
  * @param tensors The list of tensors to concatenate
- * @param dim The dimension to insert, between 0 and number of dimensions of the concatenated Tensors
+ * @param dim The dimension to insert, between 0 and number of dimensions of the
+ * concatenated Tensors
  * @return The concatenated Tensor
  */
-[[nodiscard]] auto stack(const TensorList &tensors, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto stack(const TensorList &tensors, int dim) -> Tensor;
 
 /**
- * Concatenates the list of Tensors into a new given dimension into an existing Tensor
- * All Tensors must have the same shape
- * @note This is equivalent to unsqueezing all Tensors using the given dim then concatenating
- * @note See https://pytorch.org/docs/main/generated/torch.stack.html#torch.stack
+ * Concatenates the list of Tensors into a new given dimension into an existing
+ * Tensor All Tensors must have the same shape
+ * @note This is equivalent to unsqueezing all Tensors using the given dim then
+ * concatenating
+ * @note See
+ * https://pytorch.org/docs/main/generated/torch.stack.html#torch.stack
  * @param tensors The list of tensors to concatenate
- * @param dim The dimension to insert, between 0 and number of dimensions of the concatenated Tensors
- * @param out The output Tensor, which must have the same number of elements as the sum of elements in the given
- * list
+ * @param dim The dimension to insert, between 0 and number of dimensions of the
+ * concatenated Tensors
+ * @param out The output Tensor, which must have the same number of elements as
+ * the sum of elements in the given list
  */
-void stack(const TensorList &tensors, int dim, Tensor &out);
+TINYTENSOR_EXPORT void stack(const TensorList &tensors, int dim, Tensor &out);
 
 // ------------------------------------------------------------
 // Uniform Distributions
 // ------------------------------------------------------------
 
 /**
- * Generate a Tensor with values sampled from a uniform real distribution over the interval [low, high), where the
- * shape and type are from the the same values of low and high
+ * Generate a Tensor with values sampled from a uniform real distribution over
+ * the interval [low, high), where the shape and type are from the the same
+ * values of low and high
  * @note requires low < high for each element in the Tensors
  * @param low The inclusive left end of the interval
  * @param high The exclusive right end of the interval
@@ -1840,7 +1942,7 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto uniform_real(
+[[nodiscard]] TINYTENSOR_EXPORT auto uniform_real(
     const Tensor &low,
     const Tensor &high,
     bool requires_grad = false,
@@ -1848,16 +1950,18 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a uniform real distribution over the interval [low, high)
+ * Generate a Tensor with values sampled from a uniform real distribution over
+ * the interval [low, high)
  * @note requires low < high
  * @param low The inclusive left end of the interval
  * @param high The exclusive right end of the interval
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto uniform_real(
+[[nodiscard]] TINYTENSOR_EXPORT auto uniform_real(
     double low,
     double high,
     Shape shape,
@@ -1866,28 +1970,31 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a uniform int distribution over the interval [low, high), where the
- * shape is determined by low/high and the type is the promoted type between low, high, and kDefaultInt
+ * Generate a Tensor with values sampled from a uniform int distribution over
+ * the interval [low, high), where the shape is determined by low/high and the
+ * type is the promoted type between low, high, and kDefaultInt
  * @note requires low < high for each element in the Tensors
  * @param low The inclusive left end of the interval
  * @param high The exclusive right end of the interval
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto uniform_int(const Tensor &low, const Tensor &high, Generator &gen = get_default_generator())
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    uniform_int(const Tensor &low, const Tensor &high, Generator &gen = get_default_generator()) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a uniform real distribution over the interval [low, high)
+ * Generate a Tensor with values sampled from a uniform real distribution over
+ * the interval [low, high)
  * @note requires low < high
  * @param low The inclusive left end of the interval
  * @param high The exclusive right end of the interval
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto uniform_int(
+[[nodiscard]] TINYTENSOR_EXPORT auto uniform_int(
     int64_t low,
     int64_t high,
     Shape shape,
@@ -1900,28 +2007,30 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 // ------------------------------------------------------------
 
 /**
- * Generate a Tensor with values sampled from a Bernoulli distribution, where the shape is determined by p and the
- * type is the promoted type between p and kDefaultFloat
+ * Generate a Tensor with values sampled from a Bernoulli distribution, where
+ * the shape is determined by p and the type is the promoted type between p and
+ * kDefaultFloat
  * @note p must be in range [0, 1]
  * @param p The probability of success
  * @param requires_grad Flag if autograd operations should be recorded
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto bernoulli(const Tensor &p, bool requires_grad = false, Generator &gen = get_default_generator())
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    bernoulli(const Tensor &p, bool requires_grad = false, Generator &gen = get_default_generator()) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Bernoulli distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Bernoulli distribution, where
+ * the type is kDefaultFloat if options.dtype is integral
  * @note p must be in range [0, 1]
  * @param p The probability of success
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto bernoulli(
+[[nodiscard]] TINYTENSOR_EXPORT auto bernoulli(
     double p,
     Shape shape,
     const TensorOptions &options = TensorOptions(),
@@ -1929,8 +2038,9 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Binomial distribution, where the shape is determined by p and the
- * type is the promoted type between p, num_draws, and kDefaultFloat
+ * Generate a Tensor with values sampled from a Binomial distribution, where the
+ * shape is determined by p and the type is the promoted type between p,
+ * num_draws, and kDefaultFloat
  * @note p must be in range [0, 1]
  * @param p The probability of success
  * @param num_draws Number of Bernoulli draws
@@ -1938,7 +2048,7 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto binomial(
+[[nodiscard]] TINYTENSOR_EXPORT auto binomial(
     const Tensor &p,
     const Tensor &num_draws,
     bool requires_grad = false,
@@ -1946,17 +2056,18 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Binomial distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Binomial distribution, where the
+ * type is kDefaultFloat if options.dtype is integral
  * @note p must be in range [0, 1]
  * @param p The probability of success
  * @param num_draws Number of Bernoulli draws
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto binomial(
+[[nodiscard]] TINYTENSOR_EXPORT auto binomial(
     double p,
     int num_draws,
     Shape shape,
@@ -1965,30 +2076,34 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Geometric distribution, where the shape is determined by p and the
- * type is the promoted type between p and kDefaultFloat
- * @note Uses representation of X Bernoulli trials to get one success, support = {1, 2, 3, ...}
+ * Generate a Tensor with values sampled from a Geometric distribution, where
+ * the shape is determined by p and the type is the promoted type between p and
+ * kDefaultFloat
+ * @note Uses representation of X Bernoulli trials to get one success, support =
+ * {1, 2, 3, ...}
  * @note p must be in range (0, 1]
  * @param p The probability of success
  * @param requires_grad Flag if autograd operations should be recorded
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto geometric(const Tensor &p, bool requires_grad = false, Generator &gen = get_default_generator())
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    geometric(const Tensor &p, bool requires_grad = false, Generator &gen = get_default_generator()) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Geometric distribution, where the type is kDefaultFloat if
- * options.dtype is integral
- * @note Uses representation of X Bernoulli trials to get one success, support = {1, 2, 3, ...}
+ * Generate a Tensor with values sampled from a Geometric distribution, where
+ * the type is kDefaultFloat if options.dtype is integral
+ * @note Uses representation of X Bernoulli trials to get one success, support =
+ * {1, 2, 3, ...}
  * @note p must be in range (0, 1]
  * @param p The probability of success
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto geometric(
+[[nodiscard]] TINYTENSOR_EXPORT auto geometric(
     double p,
     Shape shape,
     const TensorOptions &options = TensorOptions(),
@@ -2000,26 +2115,28 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 // ------------------------------------------------------------
 
 /**
- * Generate a Tensor with values sampled from a Poisson distribution, where the shape is determined by lambda and
- * the type is the promoted type between lambda and kDefaultFloat
+ * Generate a Tensor with values sampled from a Poisson distribution, where the
+ * shape is determined by lambda and the type is the promoted type between
+ * lambda and kDefaultFloat
  * @param lambda rate parameter, must be > 0
  * @param requires_grad Flag if autograd operations should be recorded
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto poisson(const Tensor &lambda, bool requires_grad = false, Generator &gen = get_default_generator())
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    poisson(const Tensor &lambda, bool requires_grad = false, Generator &gen = get_default_generator()) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Poisson distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Poisson distribution, where the
+ * type is kDefaultFloat if options.dtype is integral
  * @param lambda rate parameter, must be > 0
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto poisson(
+[[nodiscard]] TINYTENSOR_EXPORT auto poisson(
     double lambda,
     Shape shape,
     const TensorOptions &options = TensorOptions(),
@@ -2027,26 +2144,28 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Exponential distribution, where the shape is determined by lambda
- * and the type is the promoted type between lambda and kDefaultFloat
+ * Generate a Tensor with values sampled from a Exponential distribution, where
+ * the shape is determined by lambda and the type is the promoted type between
+ * lambda and kDefaultFloat
  * @param lambda rate parameter, must be > 0
  * @param requires_grad Flag if autograd operations should be recorded
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto
+[[nodiscard]] TINYTENSOR_EXPORT auto
     exponential(const Tensor &lambda, bool requires_grad = false, Generator &gen = get_default_generator()) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Exponential distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Exponential distribution, where
+ * the type is kDefaultFloat if options.dtype is integral
  * @param lambda rate parameter, must be > 0
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto exponential(
+[[nodiscard]] TINYTENSOR_EXPORT auto exponential(
     double lambda,
     Shape shape,
     const TensorOptions &options = TensorOptions(),
@@ -2058,29 +2177,31 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 // ------------------------------------------------------------
 
 /**
- * Generate a Tensor with values sampled from a Normal distribution, where the shape is determined by mu/std and
- * the type is the promoted type between mu, std, and kDefaultInt
+ * Generate a Tensor with values sampled from a Normal distribution, where the
+ * shape is determined by mu/std and the type is the promoted type between mu,
+ * std, and kDefaultInt
  * @param mu The mean of the distribution
  * @param std The standard deviation, must be > 0
  * @param requires_grad Flag if autograd operations should be recorded
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto
+[[nodiscard]] TINYTENSOR_EXPORT auto
     normal(const Tensor &mu, const Tensor &std, bool requires_grad = false, Generator &gen = get_default_generator())
         -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Normal distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Normal distribution, where the
+ * type is kDefaultFloat if options.dtype is integral
  * @param mu The mean of the distribution
  * @param std The standard deviation, must be > 0
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto normal(
+[[nodiscard]] TINYTENSOR_EXPORT auto normal(
     double mu,
     double std,
     Shape shape,
@@ -2089,31 +2210,35 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Cauchy distribution, where the shape is determined by loc/scale and
- * the type is the promoted type between loc, scale, and kDefaultInt
+ * Generate a Tensor with values sampled from a Cauchy distribution, where the
+ * shape is determined by loc/scale and the type is the promoted type between
+ * loc, scale, and kDefaultInt
  * @note See https://en.wikipedia.org/wiki/Cauchy_distribution
  * @param loc The mode/median of the distribution
- * @param scale The scale parameter, which is the half-width at maximum, must be > 0
+ * @param scale The scale parameter, which is the half-width at maximum, must be
+ * > 0
  * @param requires_grad Flag if autograd operations should be recorded
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto
+[[nodiscard]] TINYTENSOR_EXPORT auto
     cauchy(const Tensor &loc, const Tensor &scale, bool requires_grad = false, Generator &gen = get_default_generator())
         -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Cauchy distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Cauchy distribution, where the
+ * type is kDefaultFloat if options.dtype is integral
  * @note See https://en.wikipedia.org/wiki/Cauchy_distribution
  * @param loc The mode/median of the distribution
- * @param scale The scale parameter, which is the half-width at maximum, must be > 0
+ * @param scale The scale parameter, which is the half-width at maximum, must be
+ * > 0
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto cauchy(
+[[nodiscard]] TINYTENSOR_EXPORT auto cauchy(
     double loc,
     double scale,
     Shape shape,
@@ -2122,29 +2247,33 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Log-Normal distribution, where the shape is determined by mu/std
- * and the type is the promoted type between mu, std, and kDefaultInt
+ * Generate a Tensor with values sampled from a Log-Normal distribution, where
+ * the shape is determined by mu/std and the type is the promoted type between
+ * mu, std, and kDefaultInt
  * @param mu The mean of the underlying normal distribution
- * @param std The standard deviation of the underlying normal distribution, must be > 0
+ * @param std The standard deviation of the underlying normal distribution, must
+ * be > 0
  * @param requires_grad Flag if autograd operations should be recorded
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto
+[[nodiscard]] TINYTENSOR_EXPORT auto
     lognormal(const Tensor &mu, const Tensor &std, bool requires_grad = false, Generator &gen = get_default_generator())
         -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Log-Normal distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Log-Normal distribution, where
+ * the type is kDefaultFloat if options.dtype is integral
  * @param mu The mean of the underlying normal distribution
- * @param std The standard deviation of the underlying normal distribution, must be > 0
+ * @param std The standard deviation of the underlying normal distribution, must
+ * be > 0
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto lognormal(
+[[nodiscard]] TINYTENSOR_EXPORT auto lognormal(
     double mu,
     double std,
     Shape shape,
@@ -2153,8 +2282,9 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 ) -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Weibull distribution, where the shape is determined by lambda/k and
- * the type is the promoted type between lambda, k, and kDefaultInt
+ * Generate a Tensor with values sampled from a Weibull distribution, where the
+ * shape is determined by lambda/k and the type is the promoted type between
+ * lambda, k, and kDefaultInt
  * @note See https://en.wikipedia.org/wiki/Weibull_distribution
  * @param lambda The scale parameter, must be > 0
  * @param k The shape parameter, must be > 0
@@ -2162,22 +2292,23 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto
+[[nodiscard]] TINYTENSOR_EXPORT auto
     weibull(const Tensor &lambda, const Tensor &k, bool requires_grad = false, Generator &gen = get_default_generator())
         -> Tensor;
 
 /**
- * Generate a Tensor with values sampled from a Weibull distribution, where the type is kDefaultFloat if
- * options.dtype is integral
+ * Generate a Tensor with values sampled from a Weibull distribution, where the
+ * type is kDefaultFloat if options.dtype is integral
  * @note See https://en.wikipedia.org/wiki/Weibull_distribution
  * @param lambda The scale parameter, must be > 0
  * @param k The shape parameter, must be > 0
  * @param shape The shape of the Tensor to generate
- * @param options The tensor options of scalar type and device of the desired Tensor
+ * @param options The tensor options of scalar type and device of the desired
+ * Tensor
  * @param gen The generator source of randomness
  * @return The generated Tensor
  */
-[[nodiscard]] auto weibull(
+[[nodiscard]] TINYTENSOR_EXPORT auto weibull(
     double lambda,
     double k,
     Shape shape,
@@ -2191,142 +2322,159 @@ void stack(const TensorList &tensors, int dim, Tensor &out);
 
 /**
  * If two shapes are broadcastable, finds the resulting Shape
- * If dimensions not same length, 1s are prepended to smaller of the two. Then result is the max size along each dim
+ * If dimensions not same length, 1s are prepended to smaller of the two. Then
+ * result is the max size along each dim
  * @note: See https://pytorch.org/docs/stable/notes/broadcasting.html
  * @param lhs The first shape
  * @param rhs The second shape
  * @return The resulting shape
  */
-[[nodiscard]] auto broadcast_result_shape(const Shape lhs, const Shape rhs) -> Shape;
+[[nodiscard]] TINYTENSOR_EXPORT auto broadcast_result_shape(const Shape lhs, const Shape rhs) -> Shape;
 
 /**
  * Check if the input shape can be broadcasted to the target shape
- * Two shapes are broadcastable if when iterating over the dimension sizes, starting at the trailing dimension, the
- * dimension sizes must be equal, one of them is 1, or one of them does not exist
+ * Two shapes are broadcastable if when iterating over the dimension sizes,
+ * starting at the trailing dimension, the dimension sizes must be equal, one of
+ * them is 1, or one of them does not exist
  * @note See https://pytorch.org/docs/stable/notes/broadcasting.html
  * @param shape The current shape
  * @param target_shape The target shape to broadcast to
- * @return True if the input shape can broadcast to the target shape, false otherwise
+ * @return True if the input shape can broadcast to the target shape, false
+ * otherwise
  */
-auto can_broadcast_to(const Shape &shape, const Shape &target_shape) -> bool;
+TINYTENSOR_EXPORT auto can_broadcast_to(const Shape &shape, const Shape &target_shape) -> bool;
 
 /**
  * Check if two shapes are broadcastable to a common shape
- * Two shapes are broadcastable if when iterating over the dimension sizes, starting at the trailing dimension, the
- * dimension sizes must be equal, one of them is 1, or one of them does not exist
+ * Two shapes are broadcastable if when iterating over the dimension sizes,
+ * starting at the trailing dimension, the dimension sizes must be equal, one of
+ * them is 1, or one of them does not exist
  * @note See https://pytorch.org/docs/stable/notes/broadcasting.html
  * @param lhs LHS shape
  * @param rhs RHS shape
  * @return True if LHS and RHS can broadcast to common shape, false otherwise
  */
-auto are_broadcastable(const Shape &lhs, const Shape &rhs) -> bool;
+TINYTENSOR_EXPORT auto are_broadcastable(const Shape &lhs, const Shape &rhs) -> bool;
 
 /**
- * Expands a Tensor to the given shape, which can include a larger number of dimensions
- * New dimensions are appended to the front, and any non-singleton existing dimension must match the expanded-to
- * dimension
- * @note: This will always return a view of the input Tensor, sharing the underlying storage
+ * Expands a Tensor to the given shape, which can include a larger number of
+ * dimensions New dimensions are appended to the front, and any non-singleton
+ * existing dimension must match the expanded-to dimension
+ * @note: This will always return a view of the input Tensor, sharing the
+ * underlying storage
  * @note: This is equivalent to calling expand(tensor, shape)
  * @note: See https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html
  * @param tensor The input Tensor
  * @param shape The shape to expand to
  * @return View of the expanded Tensor
  */
-[[nodiscard]] auto broadcast_to(const Tensor &tensor, const Shape &shape) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto broadcast_to(const Tensor &tensor, const Shape &shape) -> Tensor;
 
 /**
- * Expands a Tensor to the given shape, which can include a larger number of dimensions
- * New dimensions are appended to the front, and any non-singleton existing dimension must match the expanded-to
- * dimension
- * @note: This will always return a view of the input Tensor, sharing the underlying storage
+ * Expands a Tensor to the given shape, which can include a larger number of
+ * dimensions New dimensions are appended to the front, and any non-singleton
+ * existing dimension must match the expanded-to dimension
+ * @note: This will always return a view of the input Tensor, sharing the
+ * underlying storage
  * @note: See https://pytorch.org/docs/stable/generated/torch.Tensor.expand.html
  * @param tensor The input Tensor
  * @param shape The shape to expand to
  * @return View of the expanded Tensor
  */
-[[nodiscard]] auto expand(const Tensor &tensor, const Shape &shape) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto expand(const Tensor &tensor, const Shape &shape) -> Tensor;
 
 /**
- * Removes a dimension of size one at a given dimension location to the input Tensor
+ * Removes a dimension of size one at a given dimension location to the input
+ * Tensor
  * @note: This has the same view or copy properties as reshape
- * @note: If the given dimension to squeeze is not of size 1, the Tensor is unchanged
+ * @note: If the given dimension to squeeze is not of size 1, the Tensor is
+ * unchanged
  * @param tensor The input Tensor
  * @param dim The index to remove the singleton dimension
  * @return View of the Tensor with removed dimension
  */
-[[nodiscard]] auto squeeze(const Tensor &tensor, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto squeeze(const Tensor &tensor, int dim) -> Tensor;
 
 /**
- * Inserts a dimension of size one at a given dimension location to the input Tensor
+ * Inserts a dimension of size one at a given dimension location to the input
+ * Tensor
  * @note: This has the same view or copy properties as reshape
  * @param tensor The input Tensor
  * @param dim The index to insert the singleton dimension
  * @return View of the Tensor with inserted dimension
  */
-[[nodiscard]] auto unsqueeze(const Tensor &tensor, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto unsqueeze(const Tensor &tensor, int dim) -> Tensor;
 
 /**
- * Reshapes the input Tensor to the specified shape, keeping the same underlying data and number of elements
- * @note: This will return a view of the input Tensor if possible (i.e contiguous), or a copy of the underlying
- * storage
+ * Reshapes the input Tensor to the specified shape, keeping the same underlying
+ * data and number of elements
+ * @note: This will return a view of the input Tensor if possible (i.e
+ * contiguous), or a copy of the underlying storage
  * @param tensor The input Tensor
  * @param shape The shape of the resulting Tensor to reshape to
  * @return The reshaped Tensor
  */
-[[nodiscard]] auto reshape(const Tensor &tensor, const Shape &shape) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto reshape(const Tensor &tensor, const Shape &shape) -> Tensor;
 
 /**
- * Flattens the input Tensor into a one-dimensional Tensor, equivalent to reshape({tensor.numel()})
- * @note: If start_dim and end_dim are given, only dimensions between start/end are flattened
+ * Flattens the input Tensor into a one-dimensional Tensor, equivalent to
+ * reshape({tensor.numel()})
+ * @note: If start_dim and end_dim are given, only dimensions between start/end
+ * are flattened
  * @note: This has the same view or copy properties as reshape
  * @param tensor The input Tensor
  * @param start_dim Starting dim to flatten
  * @param end_dim Ending dim to flatten
  * @return View of flattened Tensor
  */
-[[nodiscard]] auto flatten(const Tensor &tensor, int start_dim = 0, int end_dim = -1) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto flatten(const Tensor &tensor, int start_dim = 0, int end_dim = -1) -> Tensor;
 
 /**
  * Permutes the input Tensor along its dimensions
- * @note: This will always return a view of the input Tensor, sharing the underlying storage
+ * @note: This will always return a view of the input Tensor, sharing the
+ * underlying storage
  * @param tensor The input Tensor
- * @param dims The permutation of the input tensor dimensions the new Tensor should take
+ * @param dims The permutation of the input tensor dimensions the new Tensor
+ * should take
  * @return View of the permuted Tensor
  */
-[[nodiscard]] auto permute(const Tensor &tensor, const std::vector<int> &dims) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto permute(const Tensor &tensor, const std::vector<int> &dims) -> Tensor;
 
 /**
  * Repeat elements consecutively along a given dimension
- * @note See https://pytorch.org/docs/stable/generated/torch.repeat_interleave.html
+ * @note See
+ * https://pytorch.org/docs/stable/generated/torch.repeat_interleave.html
  * @note This returns a new Tensor with separate underlying storage
  * @param tensor The Tensor to repeat
  * @param repeats The number of times to repeat
  * @param dim The dimension along which to repeat
  * @return The repeated Tensor
  */
-[[nodiscard]] auto repeat_interleave(const Tensor &tensor, int repeats, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto repeat_interleave(const Tensor &tensor, int repeats, int dim) -> Tensor;
 
 /**
  * Repeats the entire Tensor for each amount given over each dimension
- * @note The length of repeats match the number of dimensions of the given Tensor
+ * @note The length of repeats match the number of dimensions of the given
+ * Tensor
  * @note See https://pytorch.org/docs/stable/generated/torch.Tensor.repeat.html
  * @note This returns a new Tensor with separate underlying storage
  * @param tensor The Tensor to repeat
  * @param repeats The number of times to repeat along each dimension
  * @return The repeated Tensor
  */
-[[nodiscard]] auto repeat(const Tensor &tensor, const Tensor &repeats) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto repeat(const Tensor &tensor, const Tensor &repeats) -> Tensor;
 
 /**
  * Repeats the entire Tensor for each amount given over each dimension
- * @note The length of repeats match the number of dimensions of the given Tensor
+ * @note The length of repeats match the number of dimensions of the given
+ * Tensor
  * @note See https://pytorch.org/docs/stable/generated/torch.Tensor.repeat.html
  * @note This returns a new Tensor with separate underlying storage
  * @param tensor The Tensor to repeat
  * @param repeats The number of times to repeat along each dimension
  * @return The repeated Tensor
  */
-[[nodiscard]] auto repeat(const Tensor &tensor, const std::vector<int> &repeats) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto repeat(const Tensor &tensor, const std::vector<int> &repeats) -> Tensor;
 
 /**
  * Gather the input Tensor values using the indices along a given dimension
@@ -2336,22 +2484,22 @@ auto are_broadcastable(const Shape &lhs, const Shape &rhs) -> bool;
  * @param dim The dimension along which to select
  * @return the gathered tensor
  */
-[[nodiscard]] auto gather(const Tensor &tensor, const Tensor &indices, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto gather(const Tensor &tensor, const Tensor &indices, int dim) -> Tensor;
 
 // ------------------------------------------------
 // Indexing Operators
 // ------------------------------------------------
 
 /**
- * Get the Tensor values at locations given by indices if RHS is an integral type, or where RHS is true if it has
- * kBoolean type.
+ * Get the Tensor values at locations given by indices if RHS is an integral
+ * type, or where RHS is true if it has kBoolean type.
  * @note This returns a new Tensor with separate underlying storage
  * @note The result is a flat Tensor
  * @param tensor The Tensor to index into
  * @param rhs An tensor of indices or a boolean mask
  * @return The indexed Tensor
  */
-[[nodiscard]] auto index(const Tensor &tensor, const Tensor &rhs) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto index(const Tensor &tensor, const Tensor &rhs) -> Tensor;
 
 /**
  * Get the resulting Tensor from indexing along a given dim
@@ -2361,7 +2509,7 @@ auto are_broadcastable(const Shape &lhs, const Shape &rhs) -> bool;
  * @param dim The dimension along which to index
  * @return The indexed Tensor
  */
-[[nodiscard]] auto index_select(const Tensor &tensor, const Tensor &indices, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto index_select(const Tensor &tensor, const Tensor &indices, int dim) -> Tensor;
 
 /**
  * Get the resulting Tensor from indexing along a given dim
@@ -2371,37 +2519,39 @@ auto are_broadcastable(const Shape &lhs, const Shape &rhs) -> bool;
  * @param dim The dimension along which to index
  * @return The indexed Tensor
  */
-[[nodiscard]] auto index_select(const Tensor &tensor, const std::vector<int> &indices, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto index_select(const Tensor &tensor, const std::vector<int> &indices, int dim)
+    -> Tensor;
 
 /**
- * Set the Tensor values in-place at locations given by indices if RHS is an integral type, or where RHS is true if
- * it has kBoolean type
+ * Set the Tensor values in-place at locations given by indices if RHS is an
+ * integral type, or where RHS is true if it has kBoolean type
  * @param self The self tensor to update the data
  * @param rhs An tensor of indices or a boolean mask
  * @param value The value to set
  * @return Tensor with updated storage values
  */
-[[nodiscard]] auto index_put(const Tensor &self, const Tensor &rhs, const Scalar &value) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto index_put(const Tensor &self, const Tensor &rhs, const Scalar &value) -> Tensor;
 
 /**
- * Set the Tensor values in-place at locations given by indices if RHS is an integral type, or where RHS is true if
- * it has kBoolean type
- * @note The number of elements of values must match the number of elements in rhs
+ * Set the Tensor values in-place at locations given by indices if RHS is an
+ * integral type, or where RHS is true if it has kBoolean type
+ * @note The number of elements of values must match the number of elements in
+ * rhs
  * @param self The self tensor to update the data
  * @param rhs An tensor of indices or a boolean mask
  * @param values The values to set
  * @return Tensor with updated storage values
  */
-[[nodiscard]] auto index_put(const Tensor &self, const Tensor &rhs, const Tensor &values) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto index_put(const Tensor &self, const Tensor &rhs, const Tensor &values) -> Tensor;
 
 /**
- * Set the Tensor values in-place at locations given by indices if RHS is an integral type, or where RHS is true if
- * it has kBoolean type
+ * Set the Tensor values in-place at locations given by indices if RHS is an
+ * integral type, or where RHS is true if it has kBoolean type
  * @param rhs An tensor of indices or a boolean mask
  * @param value The value to set
  */
 template <IsScalarType T>
-[[nodiscard]] auto index_put(const Tensor &self, const Tensor &rhs, T value) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto index_put(const Tensor &self, const Tensor &rhs, T value) -> Tensor {
     return index_put(self, rhs, Scalar(value, self.dtype()));
 }
 
@@ -2409,46 +2559,46 @@ template <IsScalarType T>
 // Binary Operators
 // ------------------------------------------------
 
-// @NOTE: An operator taking a T and a tensor probably wants to cast T to the tensors type
-// i.e. tensor(float) + double -> tensor(float)
-// But, we often want to do something like T * mask(bool), which shouldn't cast T to bool
-// So we handle the bool as a special case
+// @NOTE: An operator taking a T and a tensor probably wants to cast T to the
+// tensors type i.e. tensor(float) + double -> tensor(float) But, we often want
+// to do something like T * mask(bool), which shouldn't cast T to bool So we
+// handle the bool as a special case
 
 // NOLINTNEXTLINE(*-macro-usage)
-#define DECLARE_BINARY_OPS(FUNC)                                                           \
-    [[nodiscard]] auto FUNC(const Tensor &lhs, const Tensor &rhs) -> Tensor;               \
-    [[nodiscard]] auto FUNC(const Tensor &lhs, Scalar rhs) -> Tensor;                      \
-    [[nodiscard]] auto FUNC(Scalar lhs, const Tensor &rhs) -> Tensor;                      \
-    template <IsScalarType T>                                                              \
-    [[nodiscard]] inline auto FUNC(const Tensor &lhs, T rhs) -> Tensor {                   \
-        Scalar s = lhs.dtype() == kBool ? cast_to_default(rhs) : Scalar(rhs, lhs.dtype()); \
-        return FUNC(lhs, s);                                                               \
-    }                                                                                      \
-    template <IsScalarType T>                                                              \
-    [[nodiscard]] auto FUNC(T lhs, const Tensor &rhs) -> Tensor {                          \
-        Scalar s = rhs.dtype() == kBool ? cast_to_default(lhs) : Scalar(lhs, rhs.dtype()); \
-        return FUNC(s, rhs);                                                               \
+#define DECLARE_BINARY_OPS(FUNC)                                                               \
+    [[nodiscard]] TINYTENSOR_EXPORT auto FUNC(const Tensor &lhs, const Tensor &rhs) -> Tensor; \
+    [[nodiscard]] TINYTENSOR_EXPORT auto FUNC(const Tensor &lhs, Scalar rhs) -> Tensor;        \
+    [[nodiscard]] TINYTENSOR_EXPORT auto FUNC(Scalar lhs, const Tensor &rhs) -> Tensor;        \
+    template <IsScalarType T>                                                                  \
+    [[nodiscard]] TINYTENSOR_EXPORT inline auto FUNC(const Tensor &lhs, T rhs) -> Tensor {     \
+        Scalar s = lhs.dtype() == kBool ? cast_to_default(rhs) : Scalar(rhs, lhs.dtype());     \
+        return FUNC(lhs, s);                                                                   \
+    }                                                                                          \
+    template <IsScalarType T>                                                                  \
+    [[nodiscard]] TINYTENSOR_EXPORT auto FUNC(T lhs, const Tensor &rhs) -> Tensor {            \
+        Scalar s = rhs.dtype() == kBool ? cast_to_default(lhs) : Scalar(lhs, rhs.dtype());     \
+        return FUNC(s, rhs);                                                                   \
     }
 
 // NOLINTNEXTLINE(*-macro-usage)
-#define DECLARE_BINARY_GLOBAL_OPS(OP, FUNC)                                               \
-    DECLARE_BINARY_OPS(FUNC)                                                              \
-    template <IsScalarType T>                                                             \
-    [[nodiscard]] auto operator OP(const Tensor &lhs, T rhs)->Tensor {                    \
-        return FUNC(lhs, rhs);                                                            \
-    }                                                                                     \
-    template <IsScalarType T>                                                             \
-    [[nodiscard]] auto operator OP(T lhs, const Tensor &rhs)->Tensor {                    \
-        return FUNC(lhs, rhs);                                                            \
-    }                                                                                     \
-    [[nodiscard]] inline auto operator OP(const Tensor &lhs, Scalar rhs)->Tensor {        \
-        return FUNC(lhs, rhs);                                                            \
-    }                                                                                     \
-    [[nodiscard]] inline auto operator OP(Scalar lhs, const Tensor &rhs)->Tensor {        \
-        return FUNC(lhs, rhs);                                                            \
-    }                                                                                     \
-    [[nodiscard]] inline auto operator OP(const Tensor &lhs, const Tensor &rhs)->Tensor { \
-        return FUNC(lhs, rhs);                                                            \
+#define DECLARE_BINARY_GLOBAL_OPS(OP, FUNC)                                                                 \
+    DECLARE_BINARY_OPS(FUNC)                                                                                \
+    template <IsScalarType T>                                                                               \
+    [[nodiscard]] TINYTENSOR_EXPORT auto operator OP(const Tensor &lhs, T rhs)->Tensor {                    \
+        return FUNC(lhs, rhs);                                                                              \
+    }                                                                                                       \
+    template <IsScalarType T>                                                                               \
+    [[nodiscard]] TINYTENSOR_EXPORT auto operator OP(T lhs, const Tensor &rhs)->Tensor {                    \
+        return FUNC(lhs, rhs);                                                                              \
+    }                                                                                                       \
+    [[nodiscard]] TINYTENSOR_EXPORT inline auto operator OP(const Tensor &lhs, Scalar rhs)->Tensor {        \
+        return FUNC(lhs, rhs);                                                                              \
+    }                                                                                                       \
+    [[nodiscard]] TINYTENSOR_EXPORT inline auto operator OP(Scalar lhs, const Tensor &rhs)->Tensor {        \
+        return FUNC(lhs, rhs);                                                                              \
+    }                                                                                                       \
+    [[nodiscard]] TINYTENSOR_EXPORT inline auto operator OP(const Tensor &lhs, const Tensor &rhs)->Tensor { \
+        return FUNC(lhs, rhs);                                                                              \
     }
 
 // Global binary operators
@@ -2480,15 +2630,16 @@ DECLARE_BINARY_OPS(pow);
 
 /**
  * If both lhs and rhs are 1-dimensional, result is the dot product
- * If lhs is 1-dimensional and rhs is 2-dimensional, result is scalar-matrix product
- * If lhs is 2-dimensional and rhs is 1-dimensional, result is matrix-scalar product
- * If both lhs and rhs are 2-dimensional, result is matrix-matrix product
- * If both lhs and rhs are 3-dimensional, result is batched matrix-matrix product
+ * If lhs is 1-dimensional and rhs is 2-dimensional, result is scalar-matrix
+ * product If lhs is 2-dimensional and rhs is 1-dimensional, result is
+ * matrix-scalar product If both lhs and rhs are 2-dimensional, result is
+ * matrix-matrix product If both lhs and rhs are 3-dimensional, result is
+ * batched matrix-matrix product
  * @param lhs LHS Tensor
  * @param rhs RHS Tensor
  * @return Result of matmul operation
  */
-[[nodiscard]] auto matmul(const Tensor &lhs, const Tensor &rhs) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto matmul(const Tensor &lhs, const Tensor &rhs) -> Tensor;
 
 // ------------------------------------------------
 // Reduction operations
@@ -2499,236 +2650,273 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting minimum as a Tensor
  */
-[[nodiscard]] auto min(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto min(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the minimum of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dim The dimension to take the minimum over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto min(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto min(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
  * Returns the minimum of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dims The dimensions to take the minimum over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto min(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto min(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Returns the index of the minimum of all elements of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting index of the minimum as a Tensor
  */
-[[nodiscard]] auto argmin(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto argmin(const Tensor &tensor) -> Tensor;
 
 /**
- * Returns the indices of the minimum elements over a dimension of the input Tensor
+ * Returns the indices of the minimum elements over a dimension of the input
+ * Tensor
  * @param tensor The input Tensor
  * @param dim The dimension to take the index of minimums over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto argmin(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto argmin(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
- * Returns the indices of the minimum elements over a dimension of the input Tensor
+ * Returns the indices of the minimum elements over a dimension of the input
+ * Tensor
  * @param tensor The input Tensor
  * @param dims The dimensions to take the index of minimums over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto argmin(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto argmin(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Returns the maximum of all elements of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting maximum as a Tensor
  */
-[[nodiscard]] auto max(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto max(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the maximum of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dim The dimension to take the maximum over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto max(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto max(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
  * Returns the maximum of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dims The dimensions to take the maximum over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto max(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto max(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Returns the index of the maximum of all elements of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting index of the maximum as a Tensor
  */
-[[nodiscard]] auto argmax(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto argmax(const Tensor &tensor) -> Tensor;
 
 /**
- * Returns the indices of the maximum elements over a dimension of the input Tensor
+ * Returns the indices of the maximum elements over a dimension of the input
+ * Tensor
  * @param tensor The input Tensor
  * @param dim The dimension to take the index of maximums over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto argmax(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto argmax(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
- * Returns the indices of the maximum elements over a dimension of the input Tensor
+ * Returns the indices of the maximum elements over a dimension of the input
+ * Tensor
  * @param tensor The input Tensor
  * @param dims The dimensions to take the index of maximums over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto argmax(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto argmax(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Returns the sum of all elements of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting sum as a Tensor
  */
-[[nodiscard]] auto sum(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sum(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the sum of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dim The dimension to take the sum over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto sum(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sum(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
  * Returns the sum of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dims The dimensions to take the sum over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto sum(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sum(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Returns the mean of all elements of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting mean as a Tensor
  */
-[[nodiscard]] auto mean(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto mean(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the mean of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dim The dimension to take the mean over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto mean(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto mean(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
  * Returns the mean of each element over a dimension of the input Tensor
  * @param tensor The input Tensor
  * @param dims The dimensions to take the mean over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto mean(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto mean(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Tests if all elements evaluate to true in the input Tensor
  * @param tensor The input Tensor
  * @return True if all elements evaluate to True, False otherwise
  */
-[[nodiscard]] auto all(const Tensor &input) -> bool;
+[[nodiscard]] TINYTENSOR_EXPORT auto all(const Tensor &input) -> bool;
 
 /**
  * Tests if all elements evaluate to true over a dimension of the input Tensor
  * @note The type of the returned Tensor is kBool
  * @param tensor The input Tensor
  * @param dim The dimension to take the reduce over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto all(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto all(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
  * Tests if all elements evaluate to true over a dimension of the input Tensor
  * @note The type of the returned Tensor is kBool
  * @param tensor The input Tensor
  * @param dims The dimensions to take the reduce over
- * @param keep_dim Whether the result has the reduction dimension retained or not
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
  * @return the resulting Tensor
  */
-[[nodiscard]] auto all(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto all(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Tests if any elements evaluate to true in the input Tensor
  * @param tensor The input Tensor
  * @return True if any element evaluates to True, False otherwise
  */
-[[nodiscard]] auto any(const Tensor &input) -> bool;
+[[nodiscard]] TINYTENSOR_EXPORT auto any(const Tensor &input) -> bool;
 
 /**
  * Tests if any element evaluates to true over a dimension of the input Tensor
  * @note The type of the returned Tensor is kBool
  * @param tensor The input Tensor
  * @param dim The dimension to take the reduce over
- * @param keep_dim Whether the result has the reduction dimension retained or not
- * @param correction Difference between sample size and sampel degrees of freedom
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
+ * @param correction Difference between sample size and sampel degrees of
+ * freedom
  * @return the resulting Tensor
  */
-[[nodiscard]] auto any(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto any(const Tensor &tensor, int dim, bool keep_dim = false) -> Tensor;
 
 /**
  * Tests if any element evaluates to true over a dimension of the input Tensor
  * @note The type of the returned Tensor is kBool
  * @param tensor The input Tensor
  * @param dims The dimensions to take the reduce over
- * @param keep_dim Whether the result has the reduction dimension retained or not
- * @param correction Difference between sample size and sampel degrees of freedom
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
+ * @param correction Difference between sample size and sampel degrees of
+ * freedom
  * @return the resulting Tensor
  */
-[[nodiscard]] auto any(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto any(const Tensor &tensor, const std::vector<int> &dims, bool keep_dim = false)
+    -> Tensor;
 
 /**
  * Compute the variance of the input
  * @param input The input Tensor
- * @param keep_dim Whether the result has the reduction dimension retained or not
- * @param correction Difference between sample size and sampel degrees of freedom
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
+ * @param correction Difference between sample size and sampel degrees of
+ * freedom
  * @return the resulting Tensor
  */
-[[nodiscard]] auto var(const Tensor &input, bool keep_dim = false, int correction = 1) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto var(const Tensor &input, bool keep_dim = false, int correction = 1) -> Tensor;
 
 /**
  * Compute the variance of the input over a given dimension
  * @param input The input Tensor
  * @param dim The dimension to reduce over
- * @param keep_dim Whether the result has the reduction dimension retained or not
- * @param correction Difference between sample size and sampel degrees of freedom
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
+ * @param correction Difference between sample size and sampel degrees of
+ * freedom
  * @return the resulting Tensor
  */
-[[nodiscard]] auto var(const Tensor &input, int dim, bool keep_dim = false, int correction = 1) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto var(const Tensor &input, int dim, bool keep_dim = false, int correction = 1)
+    -> Tensor;
 
 /**
  * Compute the variance of the input over a given dimension
  * @param input The input Tensor
  * @param dims The dimensions to reduce over
- * @param keep_dim Whether the result has the reduction dimension retained or not
- * @param correction Difference between sample size and sampel degrees of freedom
+ * @param keep_dim Whether the result has the reduction dimension retained or
+ * not
+ * @param correction Difference between sample size and sampel degrees of
+ * freedom
  * @return the resulting Tensor
  */
-[[nodiscard]] auto var(const Tensor &input, const std::vector<int> &dims, bool keep_dim = false, int correction = 1)
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    var(const Tensor &input, const std::vector<int> &dims, bool keep_dim = false, int correction = 1) -> Tensor;
 
 // ------------------------------------------------
 // Unary operations
@@ -2739,14 +2927,14 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto abs(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto abs(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise negation of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto negate(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto negate(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise logical not of the input Tensor
@@ -2755,7 +2943,7 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto logical_not(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto logical_not(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise sign of the input Tensor
@@ -2763,147 +2951,147 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto sign(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sign(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise natural logarithm of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto log(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto log(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise base 10 logarithm of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto log10(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto log10(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise base 2 logarithm of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto log2(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto log2(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise natural logarithm of one plus the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto log1p(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto log1p(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise exponential of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto exp(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto exp(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise base 2 exponential of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto exp2(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto exp2(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise exp(x)-1 of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto expm1(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto expm1(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise square root of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto sqrt(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sqrt(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise sine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto sin(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sin(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise cosine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto cos(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto cos(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise tangent of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto tan(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto tan(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise trigonometric inverse sine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto asin(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto asin(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise trigonometric inverse cosine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto acos(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto acos(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise trigonometric inverse tangent of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto atan(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto atan(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise hyperbolic sine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto sinh(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sinh(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise hyperbolic cosine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto cosh(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto cosh(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise hyperbolic tangent of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto tanh(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto tanh(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise inverse hyperbolic sine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto asinh(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto asinh(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise inverse hyperbolic cosine of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto acosh(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto acosh(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise inverse hyperbolic tangent of the input Tensor
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto atanh(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto atanh(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise error function of the input Tensor
@@ -2911,7 +3099,7 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto erf(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto erf(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise complementary error function of the input Tensor
@@ -2919,7 +3107,7 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto erfc(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto erfc(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise gamma function of the input Tensor
@@ -2927,7 +3115,7 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto tgamma(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto tgamma(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise logarithm of the gamma function of the input Tensor
@@ -2935,16 +3123,17 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto lgamma(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto lgamma(const Tensor &tensor) -> Tensor;
 
 /**
- * Returns the element-wise digamma function (derivative of log gamma) of the input Tensor
+ * Returns the element-wise digamma function (derivative of log gamma) of the
+ * input Tensor
  * @note https://en.wikipedia.org/wiki/Digamma_function
  * @note This function does not have autograd support
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto digamma(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto digamma(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise ceiling of the input Tensor
@@ -2952,7 +3141,7 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto ceil(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto ceil(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise floor of the input Tensor
@@ -2960,7 +3149,7 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto floor(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto floor(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise rounding to nearest integer of the input Tensor
@@ -2969,24 +3158,26 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto round(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto round(const Tensor &tensor) -> Tensor;
 
 /**
- * Returns the element-wise boolean check if value is positive or negative infinity of the input Tensor
+ * Returns the element-wise boolean check if value is positive or negative
+ * infinity of the input Tensor
  * @note Result Tensor is of type kBool
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto isinf(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto isinf(const Tensor &tensor) -> Tensor;
 
 /**
- * Returns the element-wise boolean check if value is not-a-number of the input Tensor
+ * Returns the element-wise boolean check if value is not-a-number of the input
+ * Tensor
  * @note This function does not have autograd support
  * @note Result Tensor is of type kBool
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto isnan(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto isnan(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise boolean check if value is finite of the input Tensor
@@ -2996,11 +3187,11 @@ DECLARE_BINARY_OPS(pow);
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto isfinite(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto isfinite(const Tensor &tensor) -> Tensor;
 
 // Special unary ops
-auto operator-(const Tensor &tensor) -> Tensor;
-auto operator!(const Tensor &tensor) -> Tensor;
+TINYTENSOR_EXPORT auto operator-(const Tensor &tensor) -> Tensor;
+TINYTENSOR_EXPORT auto operator!(const Tensor &tensor) -> Tensor;
 
 // ------------------------------------------------
 // Activation Functions
@@ -3012,7 +3203,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto sigmoid(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto sigmoid(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise log-sigmoid of the input Tensor
@@ -3020,7 +3211,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto log_sigmoid(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto log_sigmoid(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise Hardsigmoid of the input Tensor
@@ -3028,18 +3219,19 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto hardsigmoid(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto hardsigmoid(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise softplus of the input Tensor
- * @note Softplus is a smooth approximation of the ReLU function (always positive)
+ * @note Softplus is a smooth approximation of the ReLU function (always
+ * positive)
  * @note https://pytorch.org/docs/stable/generated/torch.nn.Softplus.html
  * @param tensor The input Tensor
  * @param beta The beta value for Softplus
  * @param threshold Values above this revert to a linear function
  * @return the resulting Tensor
  */
-[[nodiscard]] auto softplus(const Tensor &tensor, double beta = 1, double threshold = 20) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto softplus(const Tensor &tensor, double beta = 1, double threshold = 20) -> Tensor;
 
 /**
  * Returns the element-wise rectified linear unit function of the input Tensor
@@ -3047,7 +3239,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto relu(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto relu(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise ReLU6 of the input Tensor
@@ -3055,16 +3247,17 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto relu6(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto relu6(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise LeakyReLU of the input Tensor
  * @note https://pytorch.org/docs/stable/generated/torch.nn.LeakyReLU.html
  * @param tensor The input Tensor
- * @param negative_slop The cangle of the negative slope, used for negative inputs
+ * @param negative_slop The cangle of the negative slope, used for negative
+ * inputs
  * @return the resulting Tensor
  */
-[[nodiscard]] auto leaky_relu(const Tensor &tensor, double negative_slope = 0.01) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto leaky_relu(const Tensor &tensor, double negative_slope = 0.01) -> Tensor;
 
 /**
  * Returns the element-wise Exponential Linear Unit (ELU) of the input Tensor
@@ -3073,7 +3266,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param alpha The alpha value for the ELU formulation
  * @return the resulting Tensor
  */
-[[nodiscard]] auto elu(const Tensor &tensor, double alpha = 1) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto elu(const Tensor &tensor, double alpha = 1) -> Tensor;
 
 /**
  * Returns the element-wise SELU of the input Tensor
@@ -3081,7 +3274,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto selu(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto selu(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise Sigmoid Linear Unit (SiLU) of the input Tensor
@@ -3089,7 +3282,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto silu(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto silu(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise HardTanh of the input Tensor
@@ -3099,7 +3292,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param max Maximum value of the linear region range
  * @return the resulting Tensor
  */
-[[nodiscard]] auto hardtanh(const Tensor &tensor, double min = -1, double max = 1) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto hardtanh(const Tensor &tensor, double min = -1, double max = 1) -> Tensor;
 
 /**
  * Returns the element-wise Softsign of the input Tensor
@@ -3107,17 +3300,18 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param tensor The input Tensor
  * @return the resulting Tensor
  */
-[[nodiscard]] auto softsign(const Tensor &tensor) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto softsign(const Tensor &tensor) -> Tensor;
 
 /**
  * Returns the element-wise softmax over a dimension of the input Tensor
- * @note The elements along the given dimension are rescaled so that they lie in the range [0,1] and sum to 1
+ * @note The elements along the given dimension are rescaled so that they lie in
+ * the range [0,1] and sum to 1
  * @note https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
  * @param tensor The input Tensor
  * @param dim The dimension along which the softmax will be computed
  * @return the resulting Tensor
  */
-[[nodiscard]] auto softmax(const Tensor &tensor, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto softmax(const Tensor &tensor, int dim) -> Tensor;
 
 /**
  * Returns the element-wise log-softmax over a dimension of the input Tensor
@@ -3126,7 +3320,7 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param dim The dimension along which the log softmax will be computed
  * @return the resulting Tensor
  */
-[[nodiscard]] auto log_softmax(const Tensor &tensor, int dim) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto log_softmax(const Tensor &tensor, int dim) -> Tensor;
 
 // ------------------------------------------------
 // Util/misc
@@ -3137,50 +3331,53 @@ auto operator!(const Tensor &tensor) -> Tensor;
  * @param path The full path for the file to save into
  * @param tensor The tensor to save
  */
-void save(const std::string &path, const Tensor &tensor);
+TINYTENSOR_EXPORT void save(const std::string &path, const Tensor &tensor);
 
 /**
  * Load a tensor from a given path
- * @note This will always load the tensor on the CPU, regardless of what device the saved tensor was on
+ * @note This will always load the tensor on the CPU, regardless of what device
+ * the saved tensor was on
  * @param path The full path of the file containing the serialized tensor
  * @return The loaded tensor
  */
-auto load(const std::string &path) -> Tensor;
+TINYTENSOR_EXPORT auto load(const std::string &path) -> Tensor;
 
 /**
- * Returns a tensor where elements are from lhs if cond is true, rhs otherwise element-wise
+ * Returns a tensor where elements are from lhs if cond is true, rhs otherwise
+ * element-wise
  * @param cond A boolean tensor for the condition
  * @param lhs Values to use if the cond is true
  * @param rhs Values to use if the cond is false
  * @return the resulting Tensor
  */
-[[nodiscard]] auto where(const Tensor &cond, const Tensor &lhs, const Tensor &rhs) -> Tensor;
-[[nodiscard]] auto where(const Tensor &cond, Scalar lhs, Scalar rhs) -> Tensor;
-[[nodiscard]] auto where(const Tensor &cond, const Tensor &lhs, Scalar rhs) -> Tensor;
-[[nodiscard]] auto where(const Tensor &cond, Scalar lhs, const Tensor &rhs) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto where(const Tensor &cond, const Tensor &lhs, const Tensor &rhs) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto where(const Tensor &cond, Scalar lhs, Scalar rhs) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto where(const Tensor &cond, const Tensor &lhs, Scalar rhs) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto where(const Tensor &cond, Scalar lhs, const Tensor &rhs) -> Tensor;
 
 /**
- * Returns a tensor where elements are from lhs if cond is true, rhs otherwise element-wise
+ * Returns a tensor where elements are from lhs if cond is true, rhs otherwise
+ * element-wise
  * @param cond A boolean tensor for the condition
  * @param lhs Values to use if the cond is true
  * @param rhs Values to use if the cond is false
  * @return the resulting Tensor
  */
 template <IsScalarType T>
-[[nodiscard]] auto where(const Tensor &cond, T lhs, T rhs) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto where(const Tensor &cond, T lhs, T rhs) -> Tensor {
     return where(cond, Scalar(lhs), Scalar(rhs));
 }
 template <IsScalarType T>
-[[nodiscard]] auto where(const Tensor &cond, const Tensor &lhs, T rhs) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto where(const Tensor &cond, const Tensor &lhs, T rhs) -> Tensor {
     return where(cond, lhs, Scalar(rhs));
 }
 template <IsScalarType T>
-[[nodiscard]] auto where(const Tensor &cond, T lhs, const Tensor &rhs) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto where(const Tensor &cond, T lhs, const Tensor &rhs) -> Tensor {
     return where(cond, Scalar(lhs), rhs);
 }
 
 // Auxiliary options for close checks
-class CloseOptions {
+class TINYTENSOR_EXPORT CloseOptions {
 public:
     auto rtol(double tol) -> CloseOptions &;
     auto atol(double tol) -> CloseOptions &;
@@ -3202,8 +3399,9 @@ private:
 };
 
 /**
- * Returns a Boolea Tensor where each element represents if the corresponding element in lhs is close to rhs
- * NaNs are considered equal to each other when equal_nan is true
+ * Returns a Boolea Tensor where each element represents if the corresponding
+ * element in lhs is close to rhs NaNs are considered equal to each other when
+ * equal_nan is true
  * @note Shape and device of Tensors must match
  * @note Close is defined as |lhs - rhs| <= atol + rtol x |other|
  * @note See https://pytorch.org/docs/stable/generated/torch.isclose.html
@@ -3212,12 +3410,13 @@ private:
  * @options Contains values for atol, rtol, and equal_nan
  * @return Resulting Tensor
  */
-[[nodiscard]] auto isclose(const Tensor &lhs, const Tensor &rhs, const CloseOptions &options = CloseOptions())
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    isclose(const Tensor &lhs, const Tensor &rhs, const CloseOptions &options = CloseOptions()) -> Tensor;
 
 /**
- * Returns a Boolea Tensor where each element represents if the corresponding element in lhs is close to rhs
- * NaNs are considered equal to each other when equal_nan is true
+ * Returns a Boolea Tensor where each element represents if the corresponding
+ * element in lhs is close to rhs NaNs are considered equal to each other when
+ * equal_nan is true
  * @note Close is defined as |lhs - rhs| <= atol + rtol x |other|
  * @note See https://pytorch.org/docs/stable/generated/torch.isclose.html
  * @param lhs Tensor to compare
@@ -3226,13 +3425,15 @@ private:
  * @return Resulting Tensor
  */
 template <IsScalarType T>
-[[nodiscard]] auto isclose(const Tensor &lhs, T rhs, const CloseOptions &options = CloseOptions()) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto isclose(const Tensor &lhs, T rhs, const CloseOptions &options = CloseOptions())
+    -> Tensor {
     return isclose(lhs, Tensor(Scalar(rhs), lhs.device()).expand(lhs.shape()), options);
 }
 
 /**
- * Returns a Boolea Tensor where each element represents if the corresponding element in lhs is close to rhs
- * NaNs are considered equal to each other when equal_nan is true
+ * Returns a Boolea Tensor where each element represents if the corresponding
+ * element in lhs is close to rhs NaNs are considered equal to each other when
+ * equal_nan is true
  * @note Close is defined as |lhs - rhs| <= atol + rtol x |other|
  * @note See https://pytorch.org/docs/stable/generated/torch.isclose.html
  * @param lhs Value against rhs to compare
@@ -3241,13 +3442,15 @@ template <IsScalarType T>
  * @return Resulting Tensor
  */
 template <IsScalarType T>
-[[nodiscard]] auto isclose(T lhs, const Tensor &rhs, const CloseOptions &options = CloseOptions()) -> Tensor {
+[[nodiscard]] TINYTENSOR_EXPORT auto isclose(T lhs, const Tensor &rhs, const CloseOptions &options = CloseOptions())
+    -> Tensor {
     return isclose(Tensor(Scalar(lhs), rhs.device()).expand(rhs.shape()), rhs, options);
 }
 
 /**
- * Returns true if each element in input is close to other, equivalent to boolean reduction of isclose
- * NaNs are considered equal to each other when equal_nan is true
+ * Returns true if each element in input is close to other, equivalent to
+ * boolean reduction of isclose NaNs are considered equal to each other when
+ * equal_nan is true
  * @note Close is defined as |lhs - rhs| <= atol + rtol x |other|
  * @note See https://pytorch.org/docs/stable/generated/torch.isclose.html
  * @param input First Tensor to compare
@@ -3255,8 +3458,8 @@ template <IsScalarType T>
  * @options Contains values for atol, rtol, and equal_nan
  * @return Resulting Tensor
  */
-[[nodiscard]] auto allclose(const Tensor &input, const Tensor &other, const CloseOptions &options = CloseOptions())
-    -> bool;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    allclose(const Tensor &input, const Tensor &other, const CloseOptions &options = CloseOptions()) -> bool;
 
 /**
  * Clamps all elements into the range [min, max] given by the ClampOptions
@@ -3264,7 +3467,7 @@ template <IsScalarType T>
  * @param options Clamp options holding min/max values
  * @return Resulting Tensor
  */
-[[nodiscard]] auto clamp(const Tensor &input, const ClampOptions &options = ClampOptions()) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto clamp(const Tensor &input, const ClampOptions &options = ClampOptions()) -> Tensor;
 
 /**
  * Clamps element-wise into the range [min, max]
@@ -3273,19 +3476,21 @@ template <IsScalarType T>
  * @param max The Upper-bound for each element
  * @return Resulting Tensor
  */
-[[nodiscard]] auto clamp(const Tensor &input, const Tensor &min, const Tensor &max) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto clamp(const Tensor &input, const Tensor &min, const Tensor &max) -> Tensor;
 
 /**
- * Performs a 2D convolution using filters of size (K, K) over the input. The kernel size is determined by the shape
- * of the given weight Tensor
+ * Performs a 2D convolution using filters of size (K, K) over the input. The
+ * kernel size is determined by the shape of the given weight Tensor
  * @param input The input 4D image (batch, in_channels, height, width)
  * @param weight The filters of shape (out_channels, in_channels, K, K)
- * @param bias An optional bias of shape (out_channels) to apply to each channel of the output
+ * @param bias An optional bias of shape (out_channels) to apply to each channel
+ * of the output
  * @param stride The stide to apply of the convolving kernel
- * @param padding The mount of zero padding to apply around all side of the input before applying the convolution
+ * @param padding The mount of zero padding to apply around all side of the
+ * input before applying the convolution
  * @return The result of the convolution
  */
-[[nodiscard]] auto conv2d(
+[[nodiscard]] TINYTENSOR_EXPORT auto conv2d(
     const Tensor &input,
     const Tensor &weight,
     const std::optional<Tensor> &bias = {},
@@ -3294,65 +3499,77 @@ template <IsScalarType T>
 ) -> Tensor;
 
 /**
- * Performs a 2D max-pooling opreation in (kernel_size, kernel_size) regions by (stride, stride) steps.
- * The number of output features is equal to the number of input features
+ * Performs a 2D max-pooling opreation in (kernel_size, kernel_size) regions by
+ * (stride, stride) steps. The number of output features is equal to the number
+ * of input features
  * @param input The input 4d image (batch, in_channels, heigh, width)
  * @param kernel_size The size of the pooling region
  * @param stride The stride of the pooling opreation
- * @param padding The mount of zero padding to apply around all side of the input before applying the pooling
+ * @param padding The mount of zero padding to apply around all side of the
+ * input before applying the pooling
  * @return The result of the pooling
  */
-[[nodiscard]] auto max_pool2d(const Tensor &input, int kernel_size, int stride, int padding = 0) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto max_pool2d(const Tensor &input, int kernel_size, int stride, int padding = 0)
+    -> Tensor;
 
 /**
- * Performs a 2D min-pooling opreation in (kernel_size, kernel_size) regions by (stride, stride) steps.
- * The number of output features is equal to the number of input features
+ * Performs a 2D min-pooling opreation in (kernel_size, kernel_size) regions by
+ * (stride, stride) steps. The number of output features is equal to the number
+ * of input features
  * @param input The input 4d image (batch, in_channels, heigh, width)
  * @param kernel_size The size of the pooling region
  * @param stride The stride of the pooling opreation
- * @param padding The mount of zero padding to apply around all side of the input before applying the pooling
+ * @param padding The mount of zero padding to apply around all side of the
+ * input before applying the pooling
  * @return The result of the pooling
  */
-[[nodiscard]] auto min_pool2d(const Tensor &input, int kernel_size, int stride, int padding = 0) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto min_pool2d(const Tensor &input, int kernel_size, int stride, int padding = 0)
+    -> Tensor;
 
 /**
- * Performs a 2D average-pooling opreation in (kernel_size, kernel_size) regions by (stride, stride) steps.
- * The number of output features is equal to the number of input features
+ * Performs a 2D average-pooling opreation in (kernel_size, kernel_size) regions
+ * by (stride, stride) steps. The number of output features is equal to the
+ * number of input features
  * @param input The input 4d image (batch, in_channels, heigh, width)
  * @param kernel_size The size of the pooling region
  * @param stride The stride of the pooling opreation
- * @param padding The mount of zero padding to apply around all side of the input before applying the pooling
+ * @param padding The mount of zero padding to apply around all side of the
+ * input before applying the pooling
  * @return The result of the pooling
  */
-[[nodiscard]] auto avg_pool2d(const Tensor &input, int kernel_size, int stride, int padding = 0) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto avg_pool2d(const Tensor &input, int kernel_size, int stride, int padding = 0)
+    -> Tensor;
 
 /**
  * An embedding lookup table call
  * @input input Tensor of indices into the weight table
- * @input weight The embedding matrix of shape (D, embedding_dim) where D is the maximum index size + 1
+ * @input weight The embedding matrix of shape (D, embedding_dim) where D is the
+ * maximum index size + 1
  * @return Embedding lookup results of (*input_shape, embedding_dim)
  */
-[[nodiscard]] auto embedding(const Tensor &input, const Tensor &weight) -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto embedding(const Tensor &input, const Tensor &weight) -> Tensor;
 
 /**
  * Get the current memory allocated for a given device
  * @param device The device backend to query
  * @return The current bytes allocated
  */
-[[nodiscard]] auto current_memory_allocated(const Device &device) -> uint64_t;
+[[nodiscard]] TINYTENSOR_EXPORT auto current_memory_allocated(const Device &device) -> uint64_t;
 
 /**
- * Get the total memory allocated throughout the program lifetime for a given device
+ * Get the total memory allocated throughout the program lifetime for a given
+ * device
  * @param device The device backend to query
  * @return The total bytes allocated
  */
-[[nodiscard]] auto total_memory_allocated(const Device &device) -> uint64_t;
+[[nodiscard]] TINYTENSOR_EXPORT auto total_memory_allocated(const Device &device) -> uint64_t;
 
 /**
- * Create a dot graphviz of the ops and tensors for the computation graph up to and including this tensor
+ * Create a dot graphviz of the ops and tensors for the computation graph up to
+ * and including this tensor
  * @tensor The Tensor to build the computation graph from
  */
-[[nodiscard]] auto make_dot(const Tensor &tensor) -> std::string;
+[[nodiscard]] TINYTENSOR_EXPORT auto make_dot(const Tensor &tensor) -> std::string;
 
 }    // namespace tinytensor
 

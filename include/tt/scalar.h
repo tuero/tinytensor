@@ -6,6 +6,7 @@
 
 #include <tt/concepts.h>
 #include <tt/exception.h>
+#include <tt/export.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -17,7 +18,7 @@
 
 namespace tinytensor {
 
-enum class ScalarType {
+enum class TINYTENSOR_EXPORT ScalarType {
     bool8 = 0,    // 8 bit bool
     u8,           // 8 bit unsigned int
     i16,          // 16 bit int
@@ -56,7 +57,7 @@ concept IsScalarType = IsScalarIntType<T> || IsScalarFloatType<T>;
  * @param dtype The dtype to check
  * @return True if the dtype is integral, false otherwise
  */
-constexpr auto is_integral_dtype(ScalarType dtype) -> bool {
+TINYTENSOR_EXPORT constexpr auto is_integral_dtype(ScalarType dtype) -> bool {
     return dtype == kU8 || dtype == kI16 || dtype == kI32 || dtype == kI64;
 }
 
@@ -65,14 +66,14 @@ constexpr auto is_integral_dtype(ScalarType dtype) -> bool {
  * @param dtype The dtype to check
  * @return True if the dtype is floating point, false otherwise
  */
-constexpr auto is_float_dtype(ScalarType dtype) -> bool {
+TINYTENSOR_EXPORT constexpr auto is_float_dtype(ScalarType dtype) -> bool {
     return dtype == kF32 || dtype == kF64;
 }
 
 /**
  * Convert scalar type to string
  */
-constexpr auto to_string(ScalarType type) -> std::string {
+TINYTENSOR_EXPORT constexpr auto to_string(ScalarType type) -> std::string {
     switch (type) {
     case ScalarType::bool8:
         return "bool8";
@@ -92,10 +93,10 @@ constexpr auto to_string(ScalarType type) -> std::string {
     TT_EXCEPTION("Unknown ScalarType" + std::to_string(static_cast<std::underlying_type_t<ScalarType>>(type)));
 }
 
-auto operator<<(std::ostream &os, const ScalarType &dtype) -> std::ostream &;
+TINYTENSOR_EXPORT auto operator<<(std::ostream &os, const ScalarType &dtype) -> std::ostream &;
 
 // Get the promoted type (smallest size and scalar type not smaller than both type1 and type2)
-auto promote_types(ScalarType type1, ScalarType type2) -> ScalarType;
+TINYTENSOR_EXPORT auto promote_types(ScalarType type1, ScalarType type2) -> ScalarType;
 
 // ctype to scalar type
 template <typename T>
@@ -108,12 +109,12 @@ struct to_ctype;
 // NOLINTNEXTLINE(*-macro-usage)
 #define DECLARE_TYPE_TRAITS(CTYPE, SCALAR_TYPE, REQUIRED_BYTES) \
     template <>                                                 \
-    struct to_scalar<CTYPE> {                                   \
+    struct TINYTENSOR_EXPORT to_scalar<CTYPE> {                 \
         static_assert(sizeof(CTYPE) == REQUIRED_BYTES);         \
         static constexpr ScalarType type = SCALAR_TYPE;         \
     };                                                          \
     template <>                                                 \
-    struct to_ctype<SCALAR_TYPE> {                              \
+    struct TINYTENSOR_EXPORT to_ctype<SCALAR_TYPE> {            \
         static_assert(sizeof(CTYPE) == REQUIRED_BYTES);         \
         using type = CTYPE;                                     \
     };
@@ -127,11 +128,11 @@ DECLARE_TYPE_TRAITS(double, kF64, 8);
 
 // Bool is specially handled
 template <>
-struct to_scalar<bool> {
+struct TINYTENSOR_EXPORT to_scalar<bool> {
     static constexpr ScalarType type = kBool;
 };
 template <>
-struct to_ctype<kBool> {
+struct TINYTENSOR_EXPORT to_ctype<kBool> {
     using type = uint8_t;
 };
 
@@ -139,7 +140,7 @@ template <ScalarType T>
 using to_ctype_t = to_ctype<T>::type;
 
 // Type erased scalar type
-class Scalar {
+class TINYTENSOR_EXPORT Scalar {
 public:
     explicit Scalar(bool v)
         : data(static_cast<uint8_t>(v)), type(kBool) {}
@@ -230,31 +231,31 @@ private:
 /**
  * Convert Scalar to string
  */
-auto to_string(const Scalar &scalar) -> std::string;
+TINYTENSOR_EXPORT auto to_string(const Scalar &scalar) -> std::string;
 
-auto operator<<(std::ostream &os, const Scalar &scalar) -> std::ostream &;
+TINYTENSOR_EXPORT auto operator<<(std::ostream &os, const Scalar &scalar) -> std::ostream &;
 
 // Cast floating or integral Ts to scalar types
 template <IsScalarFloatType T>
-auto cast_to_default(T t) -> Scalar {
+TINYTENSOR_EXPORT auto cast_to_default(T t) -> Scalar {
     return Scalar(t, kDefaultFloat);
 }
 template <IsScalarIntType T>
-auto cast_to_default(T t) -> Scalar {
+TINYTENSOR_EXPORT auto cast_to_default(T t) -> Scalar {
     return Scalar(t, kDefaultInt);
 }
 
 }    // namespace tinytensor
 
 template <>
-struct std::formatter<tinytensor::ScalarType> : std::formatter<std::string> {
+struct TINYTENSOR_EXPORT std::formatter<tinytensor::ScalarType> : std::formatter<std::string> {
     auto format(const tinytensor::ScalarType &dtype, format_context &ctx) const {
         return formatter<string>::format(std::format("{}", to_string(dtype)), ctx);
     }
 };
 
 template <>
-struct std::formatter<tinytensor::Scalar> : std::formatter<std::string> {
+struct TINYTENSOR_EXPORT std::formatter<tinytensor::Scalar> : std::formatter<std::string> {
     auto format(const tinytensor::Scalar &scalar, format_context &ctx) const {
         return formatter<string>::format(std::format("{}", to_string(scalar)), ctx);
     }

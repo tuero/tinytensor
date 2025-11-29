@@ -6,6 +6,7 @@
 
 #include <tt/device.h>
 #include <tt/exception.h>
+#include <tt/export.h>
 #include <tt/tensor.h>
 
 #include <cstdint>
@@ -18,7 +19,7 @@
 
 namespace tinytensor::nn {
 
-class Module {
+class TINYTENSOR_EXPORT Module {
 public:
     virtual ~Module() = default;
     Module() = default;

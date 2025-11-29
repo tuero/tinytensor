@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_BATCHNORM_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -16,7 +17,7 @@
 namespace tinytensor::nn {
 
 // Options for BatchNorm
-struct BatchNormOptions {
+struct TINYTENSOR_EXPORT BatchNormOptions {
     double eps = 1e-5;
     double momentum = 0.1;
     bool affine = true;                 // Whether affine params are learnable
@@ -25,7 +26,7 @@ struct BatchNormOptions {
 
 // A batch norm over 2d or 3d inputs
 // https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html
-class BatchNorm1d : public Module {
+class TINYTENSOR_EXPORT BatchNorm1d : public Module {
 public:
     /**
      * Construct a BatchNorm1d layer
@@ -66,7 +67,7 @@ private:
 
 // A batch norm over 4d inputs
 // https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html
-class BatchNorm2d : public Module {
+class TINYTENSOR_EXPORT BatchNorm2d : public Module {
 public:
     /**
      * Construct a BatchNorm2d layer

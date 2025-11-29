@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_NN_LOSS_H_
 #define TINYTENSOR_NN_LOSS_H_
 
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/tensor.h>
 
@@ -15,7 +16,7 @@
 namespace tinytensor::nn {
 
 // Reduction modes used for the loss functions
-enum class ReductionMode {
+enum class TINYTENSOR_EXPORT ReductionMode {
     none,
     mean,
     sum,
@@ -32,10 +33,10 @@ enum class ReductionMode {
  * @param mode The reduction mode
  * @return The loss result
  */
-[[nodiscard]] auto l1_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean)
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    l1_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean) -> Tensor;
 
-class L1Loss : public Module {
+class TINYTENSOR_EXPORT L1Loss : public Module {
 public:
     /**
      * Create a L1Loss module
@@ -83,10 +84,10 @@ private:
  * @param mode The reduction mode
  * @return The loss result
  */
-[[nodiscard]] auto mse_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean)
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    mse_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean) -> Tensor;
 
-class MSELoss : public Module {
+class TINYTENSOR_EXPORT MSELoss : public Module {
 public:
     /**
      * Create a MSELoss module
@@ -136,14 +137,14 @@ private:
  * @param mode The reduction mode
  * @return The loss result, of shape (1), (N), or (N,d_1,...,d_k) with k>=1 following the input shape options
  */
-[[nodiscard]] auto cross_entropy_loss(
+[[nodiscard]] TINYTENSOR_EXPORT auto cross_entropy_loss(
     const Tensor &input,
     const Tensor &target_indices,
     const std::optional<Tensor> &weight = std::nullopt,
     ReductionMode mode = ReductionMode::mean
 ) -> Tensor;
 
-class CrossEntropyLoss : public Module {
+class TINYTENSOR_EXPORT CrossEntropyLoss : public Module {
 public:
     /**
      * Create a CrossEntropyLoss module
@@ -202,14 +203,14 @@ private:
  * @param mode The reduction mode
  * @return The loss result, of shape (1), (N), or (N,d_1,...,d_k) with k>=1 following the input shape options
  */
-[[nodiscard]] auto nll_loss(
+[[nodiscard]] TINYTENSOR_EXPORT auto nll_loss(
     const Tensor &input,
     const Tensor &target_indices,
     const std::optional<Tensor> &weight = std::nullopt,
     ReductionMode mode = ReductionMode::mean
 ) -> Tensor;
 
-class NLLLoss : public Module {
+class TINYTENSOR_EXPORT NLLLoss : public Module {
 public:
     /**
      * Create a NLLLoss module
@@ -268,14 +269,14 @@ private:
  * @param log_target True if the target provided is in log-space, false if not
  * @return The loss result
  */
-[[nodiscard]] auto kld_loss(
+[[nodiscard]] TINYTENSOR_EXPORT auto kld_loss(
     const Tensor &input,
     const Tensor &target,
     ReductionMode mode = ReductionMode::mean,
     bool log_target = false
 ) -> Tensor;
 
-class KLDivLoss : public Module {
+class TINYTENSOR_EXPORT KLDivLoss : public Module {
 public:
     /**
      * Create a KLDivLoss module
@@ -327,10 +328,10 @@ private:
  * @param mode The reduction mode
  * @return The loss result
  */
-[[nodiscard]] auto bce_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean)
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    bce_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean) -> Tensor;
 
-class BCELoss : public Module {
+class TINYTENSOR_EXPORT BCELoss : public Module {
 public:
     /**
      * Create a BCELoss module
@@ -382,10 +383,10 @@ private:
  * @param mode The reduction mode
  * @return The loss result
  */
-[[nodiscard]] auto
+[[nodiscard]] TINYTENSOR_EXPORT auto
     bce_with_logits_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean) -> Tensor;
 
-class BCEWithLogitsLoss : public Module {
+class TINYTENSOR_EXPORT BCEWithLogitsLoss : public Module {
 public:
     /**
      * Create a BCEWithLogitsLoss module
@@ -436,11 +437,11 @@ private:
  * @param mode The reduction mode
  * @return The loss result
  */
-[[nodiscard]] auto
+[[nodiscard]] TINYTENSOR_EXPORT auto
     huber_loss(const Tensor &input, const Tensor &target, double delta = 1.0, ReductionMode mode = ReductionMode::mean)
         -> Tensor;
 
-class HuberLoss : public Module {
+class TINYTENSOR_EXPORT HuberLoss : public Module {
 public:
     /**
      * Create a HuberLoss module
@@ -491,14 +492,14 @@ private:
  * @param mode The reduction mode
  * @return The loss result
  */
-[[nodiscard]] auto smooth_l1_loss(
+[[nodiscard]] TINYTENSOR_EXPORT auto smooth_l1_loss(
     const Tensor &input,
     const Tensor &target,
     double beta = 1.0,
     ReductionMode mode = ReductionMode::mean
 ) -> Tensor;
 
-class SmoothL1Loss : public Module {
+class TINYTENSOR_EXPORT SmoothL1Loss : public Module {
 public:
     /**
      * Create a SmoothL1Loss module
@@ -548,10 +549,10 @@ private:
  * @param mode The reduction mode
  * @return The loss result
  */
-[[nodiscard]] auto soft_margin_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean)
-    -> Tensor;
+[[nodiscard]] TINYTENSOR_EXPORT auto
+    soft_margin_loss(const Tensor &input, const Tensor &target, ReductionMode mode = ReductionMode::mean) -> Tensor;
 
-class SoftMarginLoss : public Module {
+class TINYTENSOR_EXPORT SoftMarginLoss : public Module {
 public:
     /**
      * Create a SoftMarginLoss module

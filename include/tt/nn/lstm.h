@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_LSTM_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -17,7 +18,7 @@
 namespace tinytensor::nn {
 
 // Options for LSTM
-struct LSTMOptions {
+struct TINYTENSOR_EXPORT LSTMOptions {
     int num_layers = 1;
     bool bias = true;
     bool batch_first = false;
@@ -26,7 +27,7 @@ struct LSTMOptions {
 
 // An LSTM layer
 // See https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html
-class LSTM : public Module {
+class TINYTENSOR_EXPORT LSTM : public Module {
 public:
     // Input initial hidden and cell state
     struct InitState {

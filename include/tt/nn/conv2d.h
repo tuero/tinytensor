@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_CONV2D_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -17,7 +18,7 @@
 namespace tinytensor::nn {
 
 // A 2D Convolutional layer
-class Conv2d : public Module {
+class TINYTENSOR_EXPORT Conv2d : public Module {
 public:
     /**
      * Construct a Conv2d layer

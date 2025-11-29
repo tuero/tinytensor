@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_LINEAR_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -17,7 +18,7 @@
 namespace tinytensor::nn {
 
 // A linear layer
-class Linear : public Module {
+class TINYTENSOR_EXPORT Linear : public Module {
 public:
     /**
      * Construct a linear layer

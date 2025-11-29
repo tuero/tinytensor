@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_RNN_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -17,7 +18,7 @@
 namespace tinytensor::nn {
 
 // Options for RNN
-struct RNNOptions {
+struct TINYTENSOR_EXPORT RNNOptions {
     int num_layers = 1;
     bool bias = true;
     bool batch_first = false;
@@ -26,7 +27,7 @@ struct RNNOptions {
 
 // An RNN layer
 // See https://pytorch.org/docs/stable/generated/torch.nn.RNN.html
-class RNN : public Module {
+class TINYTENSOR_EXPORT RNN : public Module {
 public:
     // Output packed data from RNN
     struct Output {
