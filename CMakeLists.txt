@@ -52,10 +52,11 @@ if(TT_BUILD_CUDA)
         set(TINYTENSOR_CUDA_FLAGS "--expt-relaxed-constexpr")
         target_compile_features(tinytensor PUBLIC cuda_std_20)
         target_compile_options(tinytensor PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:${TINYTENSOR_CUDA_FLAGS}>")
-        target_link_libraries(tinytensor CUDA::cudart)
+        target_link_libraries(tinytensor PRIVATE CUDA::cudart)
         set_target_properties(tinytensor PROPERTIES 
             CUDA_SEPARABLE_COMPILATION ON
             CUDA_ARCHITECTURES native
+            CUDA_RESOLVE_DEVICE_SYMBOLS ON
         )
         # Macro definition so source files can conditionally set CUDA device/backend
         target_compile_definitions(tinytensor PUBLIC TT_CUDA)

@@ -1554,7 +1554,7 @@ public:
 
 private:
     // Friends
-    friend std::ostream &operator<<(std::ostream &os, const Tensor &tensor);
+    friend TINYTENSOR_EXPORT std::ostream &operator<<(std::ostream &os, const Tensor &tensor);
 
     template <typename T>
     friend struct autograd::TensorFunction;
