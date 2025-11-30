@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_DATAST_MNIST_H_
 #define TINYTENSOR_DATAST_MNIST_H_
 
+#include <tt/export.h>
 #include <tt/shape.h>
 #include <tt/tensor.h>
 
@@ -14,7 +15,7 @@ namespace tinytensor::data {
 
 // IsDataset compliant wrapper for MNIST
 // Users must download the *-images-idx3-ubyte and *-labels-idx1-ubyte data files
-class MNISTDataset {
+class TINYTENSOR_EXPORT MNISTDataset {
 public:
     using DataType = std::tuple<Tensor, Tensor>;
 

@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_NN_OPTIMIZER_SGD_H_
 #define TINYTENSOR_NN_OPTIMIZER_SGD_H_
 
+#include <tt/export.h>
 #include <tt/optim/optimizer.h>
 #include <tt/tensor.h>
 
@@ -15,7 +16,7 @@ namespace tinytensor::optim {
 
 // Options for SGD
 // @note See https://pytorch.org/docs/stable/generated/torch.optim.SGD.html
-struct SGDOptions {
+struct TINYTENSOR_EXPORT SGDOptions {
     RegularizationMode regularization_mode = RegularizationMode::l2;
     double weight_decay = 0;
     double momentum = 0;
@@ -23,7 +24,7 @@ struct SGDOptions {
     bool maximize = false;
 };
 
-class SGD : public Optimizer {
+class TINYTENSOR_EXPORT SGD : public Optimizer {
     using TensorRefList = std::vector<std::reference_wrapper<Tensor>>;
 
 public:

@@ -124,12 +124,72 @@ The following configurations have been tested:
 - Ubuntu 24.04: `g++` 13.3.0, `clang++` 18.1.8, `nvcc` 12.6
 - macOS 15.2: `g++` 14.2.0, `clang++` 19.1.6
 
-Add the following to your `CMakeLists.txt`
+Both static and shared library builds are offered, 
+which can be controlled throught the CMake cache variable `-DBUILD_SHARED_LIBS=ON`
+
+> [!IMPORTANT]
+> To build with CUDA support, you must set the cmake flag `TT_BUILD_CUDA`:
 ```shell
+mkdir build && cd build
+cmake -DTT_BUILD_CUDA=1 ..
+make
+```
+
+### VCPKG
+`tinytensor` is not part of the official registry for vcpkg,
+but is supported in my personal registry [here](https://github.com/tuero/vcpkg-registry).
+To add `tuero/vcpkg-registry` as a git registry to your vcpkg project:
+```json
+"registries": [
+...
+{
+    "kind": "git",
+    "repository": "https://github.com/tuero/vcpkg-registry",
+    "reference": "master",
+    "baseline": "<COMMIT_SHA>",
+    "packages": ["tinytensor"]
+}
+]
+...
+```
+where `<COMMIT_SHA>` is the 40-character git commit sha in the registry's repository (you can find 
+this by clicking on the latest commit [here](https://github.com/tuero/vcpkg-registry) and looking 
+at the URL.
+
+To enable CUDA support, you can use the `cuda` feature option when adding the library to vcpkg:
+```shell
+vcpkg add port tinytensor           # CPU only
+vcpkg add port tinytensor[cuda]     # CUDA and CPU 
+```
+
+Then in your project cmake:
+```cmake
+cmake_minimum_required(VERSION 3.25)
+project(my_project LANGUAGES CXX)
+
+# Required if you statically built the library
+# See https://stackoverflow.com/questions/74224268/link-static-cuda-library-using-cmake
+# find_package(CUDAToolkit)
+
+find_package(tinytensor CONFIG REQUIRED)
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE tinytensor::tinytensor)
+```
+
+
+### CMake FetchContent
+Add the following to your `CMakeLists.txt`
+```cmake
 include(FetchContent)
 
 # If building with CUDA support
 enable_language(CUDA) 
+
+# If linking the static lib with cuda support, you need to add the following 
+# so the cuda runtime is linked.
+# See https://stackoverflow.com/questions/74224268/link-static-cuda-library-using-cmake
+# If dynamic linking, you can skip this.
+find_package(CUDAToolkit)
 
 message("Configuring TinyTensor")
 FetchContent_Declare(tinytensor
@@ -140,19 +200,36 @@ FetchContent_MakeAvailable(tinytensor)
 
 # Example application with a single source main.cpp
 add_executable(main main.cpp)
-target_link_libraries(main tinytensor)
+target_link_libraries(main tinytensor::tinytensor)
 ```
 
-> [!IMPORTANT]
-> To build with CUDA support, you must set the cmake flag `TT_BUILD_CUDA`:
+
+### Globally Installing
+If you want to build and install globally, 
+you can follow the usual process of doing so:
 ```shell
-mkdir build && cd build
-cmake -DTT_BUILD_CUDA=1 ..
-make
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DTT_BUILD_CUDA=ON -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL>
+cmake --build build
+cmake --install build
 ```
+
+Then in your project cmake, you can use `find_package` assuming the install location is in your `CMAKE_PREFIX_PATH`:
+```cmake
+cmake_minimum_required(VERSION 3.25)
+project(my_project LANGUAGES CXX)
+
+# Required if you statically built the library
+# See https://stackoverflow.com/questions/74224268/link-static-cuda-library-using-cmake
+# find_package(CUDAToolkit)
+
+find_package(tinytensor CONFIG REQUIRED)
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE tinytensor::tinytensor)
+```
+
 
 ## Building Tests and Examples
-The `CMakePresets.json` defines build options for the tests and exampes. 
+The `CMakePresets.json` defines build options for the tests and examples. 
 - To build tests, the cmake flag `TT_BUILD_TESTS` must be set
 - To build examples, the cmake flag `TT_BUILD_EXAMPLES` must be set
 

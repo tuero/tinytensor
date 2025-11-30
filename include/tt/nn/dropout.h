@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_NN_DROPOUT_H_
 #define TINYTENSOR_NN_DROPOUT_H_
 
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/tensor.h>
 
@@ -13,7 +14,7 @@
 namespace tinytensor::nn {
 
 // A dropout layer
-class Dropout : public Module {
+class TINYTENSOR_EXPORT Dropout : public Module {
 public:
     /**
      * Construct a Dropout layer

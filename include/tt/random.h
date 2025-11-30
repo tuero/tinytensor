@@ -4,6 +4,7 @@
 #ifndef TINYTENSOR_RANDOM_H_
 #define TINYTENSOR_RANDOM_H_
 
+#include <tt/export.h>
 #include <tt/macros.h>
 
 #include <cstdint>
@@ -13,7 +14,7 @@ namespace tinytensor {
 
 // RNG object for all distribution functions
 //
-class Generator {
+class TINYTENSOR_EXPORT Generator {
 public:
     /**
      * Create a Generator from a seed
@@ -42,19 +43,19 @@ private:
     uint64_t state;
 };
 
-void shuffle(std::vector<int> &data, Generator &gen);
+TINYTENSOR_EXPORT void shuffle(std::vector<int> &data, Generator &gen);
 
 /**
  * Set the default generator state using the passed seed
  * @param seed The seed
  */
-void set_default_generator_seed(uint64_t seed);
+TINYTENSOR_EXPORT void set_default_generator_seed(uint64_t seed);
 
 /**
  * Get the default generator.
  * For reproducibility, its recomended to not rely on this and create your own Generator
  */
-auto get_default_generator() -> Generator &;
+TINYTENSOR_EXPORT auto get_default_generator() -> Generator &;
 
 }    // namespace tinytensor
 

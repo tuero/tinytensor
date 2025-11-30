@@ -4,13 +4,15 @@
 #ifndef TINYTENSOR_EXCEPTION_H_
 #define TINYTENSOR_EXCEPTION_H_
 
+#include <tt/export.h>
+
 #include <exception>
 #include <iostream>
 #include <string>
 
 namespace tinytensor {
 
-class TTException : public std::exception {
+class TINYTENSOR_EXPORT TTException : public std::exception {
 public:
     TTException(const std::string &message, const char *file_name, const char *function_signature, int line_number);
     [[nodiscard]] auto what() const noexcept -> const char * override;

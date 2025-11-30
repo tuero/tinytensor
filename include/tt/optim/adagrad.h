@@ -5,6 +5,7 @@
 #ifndef TINYTENSOR_NN_OPTIMIZER_ADAGRAD_H_
 #define TINYTENSOR_NN_OPTIMIZER_ADAGRAD_H_
 
+#include <tt/export.h>
 #include <tt/optim/optimizer.h>
 #include <tt/tensor.h>
 
@@ -16,7 +17,7 @@ namespace tinytensor::optim {
 
 // Options for Adagrad
 // @note See https://pytorch.org/docs/stable/generated/torch.optim.Adagrad.html
-struct AdagradOptions {
+struct TINYTENSOR_EXPORT AdagradOptions {
     RegularizationMode regularization_mode = RegularizationMode::l2;
     double weight_decay = 0;
     double learning_rate_decay = 0;
@@ -24,7 +25,7 @@ struct AdagradOptions {
     bool maximize = false;
 };
 
-class Adagrad : public Optimizer {
+class TINYTENSOR_EXPORT Adagrad : public Optimizer {
     using TensorRefList = std::vector<std::reference_wrapper<Tensor>>;
 
 public:

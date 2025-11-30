@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_GRU_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -17,7 +18,7 @@
 namespace tinytensor::nn {
 
 // Options for GRU
-struct GRUOptions {
+struct TINYTENSOR_EXPORT GRUOptions {
     int num_layers = 1;
     bool bias = true;
     bool batch_first = false;
@@ -26,7 +27,7 @@ struct GRUOptions {
 
 // An GRU layer
 // See https://pytorch.org/docs/stable/generated/torch.nn.GRU.html
-class GRU : public Module {
+class TINYTENSOR_EXPORT GRU : public Module {
 public:
     // Output packed data from GRU
     struct Output {

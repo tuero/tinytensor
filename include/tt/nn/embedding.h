@@ -5,6 +5,7 @@
 #define TINYTENSOR_NN_EMBEDDING_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/nn/module.h>
 #include <tt/scalar.h>
 #include <tt/tensor.h>
@@ -16,7 +17,7 @@
 namespace tinytensor::nn {
 
 // An embedding layer
-class Embedding : public Module {
+class TINYTENSOR_EXPORT Embedding : public Module {
 public:
     /**
      * Construct a linear layer

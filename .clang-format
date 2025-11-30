@@ -47,6 +47,7 @@ BreakAfterAttributes: Never # clang-format 16
 BreakAfterJavaFieldAnnotations: true
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
+# BreakBeforeCloseBracketFunction: true # clang-format 22
 BreakBeforeConceptDeclarations: Always
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon

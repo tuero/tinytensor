@@ -5,6 +5,7 @@
 #define TINYTENSOR_AUTOGRAD_TYPES_H_
 
 #include <tt/device.h>
+#include <tt/export.h>
 #include <tt/grad_mode.h>
 #include <tt/index.h>
 #include <tt/scalar.h>
@@ -27,7 +28,7 @@ namespace detail {
 // CRTP class to iterate over a variadic collection and apply a function to each argument
 // Derived classes should overload operator() for each type it wants to handle, along with the behaviour
 template <typename T>
-struct IterateApply {
+struct TINYTENSOR_EXPORT IterateApply {
     // Base case reaching end of collection
     template <typename... Args>
     T &apply() {
@@ -49,7 +50,7 @@ private:
 };
 
 // Extract tensors from a generic set of arguments, so we can track with autograd
-class ExtractTensors : public IterateApply<ExtractTensors> {
+class TINYTENSOR_EXPORT ExtractTensors : public IterateApply<ExtractTensors> {
 public:
     ExtractTensors(TensorList &tensors)
         : tensors_(tensors) {}
@@ -103,10 +104,10 @@ using StorageItem = std::variant<
     indexing::IndexList,
     VersionedTensor,
     VersionedTensorList>;
-inline auto make_versioned_tensor(const Tensor &tensor) -> VersionedTensor {
+TINYTENSOR_EXPORT inline auto make_versioned_tensor(const Tensor &tensor) -> VersionedTensor {
     return {tensor, tensor.version_count()};
 }
-inline auto make_versioned_tensor_list(const TensorList &tensors) -> VersionedTensorList {
+TINYTENSOR_EXPORT inline auto make_versioned_tensor_list(const TensorList &tensors) -> VersionedTensorList {
     VersionedTensorList list;
     for (const auto &tensor : tensors) {
         list.emplace_back(tensor, tensor.version_count());
@@ -123,7 +124,7 @@ using GradList = CheckedVec<std::optional<Tensor>>;
 using GradFunc = std::function<GradList(AutogradStorage &storage, const Tensor &grad_output)>;
 
 // Shared grad info between all reference tensors
-struct SharedGrad {
+struct TINYTENSOR_EXPORT SharedGrad {
     AutogradStorage storage;
     TensorList parents;
     std::optional<Tensor> grad = std::nullopt;
@@ -139,7 +140,7 @@ struct SharedGrad {
  * Tensor functions can only return tensors
  */
 template <typename T>
-struct TensorFunction {
+struct TINYTENSOR_EXPORT TensorFunction {
     // Internal friend getters
     static auto get_shape(Tensor &tensor) -> Shape & {
         return tensor.shape_;

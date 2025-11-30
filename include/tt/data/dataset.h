@@ -6,6 +6,7 @@
 
 #include <tt/concepts.h>
 #include <tt/exception.h>
+#include <tt/export.h>
 #include <tt/random.h>
 #include <tt/tensor.h>
 #include <tt/util.h>
@@ -36,7 +37,7 @@ concept IsDataset = requires(const T ct, int idx) {
 // IsDataset compliant dataset of tensors
 template <typename... Ts>
     requires IsAllOf<Tensor, Ts...>
-class TensorDataset {
+class TINYTENSOR_EXPORT TensorDataset {
 public:
     static_assert(sizeof...(Ts) > 0);
     using DataType = std::tuple<Ts...>;
@@ -73,7 +74,7 @@ private:
 // DatasetView needs to either take ownership of the underlying dataset, or share ownership
 // (usually through multiple views created from train/validation/test splits)
 template <IsDataset T>
-class DatasetView {
+class TINYTENSOR_EXPORT DatasetView {
 public:
     /**
      * Create DatasetView through taking ownership of entire dataset
@@ -154,7 +155,8 @@ private:
  * @param splits Sequence of split sizes for each view
  */
 template <IsDataset T>
-auto random_split(T &&dataset, Generator &gen, const std::vector<int> &splits) -> std::vector<DatasetView<T>> {
+TINYTENSOR_EXPORT auto random_split(T &&dataset, Generator &gen, const std::vector<int> &splits)
+    -> std::vector<DatasetView<T>> {
     auto split_sum = std::reduce(splits.begin(), splits.end());
     if (split_sum != dataset.size()) {
         TT_EXCEPTION(
@@ -195,7 +197,7 @@ auto random_split(T &&dataset, Generator &gen, const std::vector<int> &splits) -
  */
 template <IsDataset T, typename... Ts>
     requires(!std::is_lvalue_reference_v<T> && IsAllOf<int, Ts...>)
-auto random_split(T &&dataset, Generator &gen, const std::tuple<Ts...> &splits) {
+TINYTENSOR_EXPORT auto random_split(T &&dataset, Generator &gen, const std::tuple<Ts...> &splits) {
     auto split_sum = std::apply([](auto... v) { return (v + ...); }, splits);
     if (split_sum != dataset.size()) {
         TT_EXCEPTION(
@@ -242,7 +244,7 @@ auto random_split(T &&dataset, Generator &gen, const std::tuple<Ts...> &splits) 
  */
 template <IsDataset T, typename... Ts>
     requires(!std::is_lvalue_reference_v<T> && IsAllOf<int, Ts...>)
-auto random_split(T &&dataset, uint64_t seed, Ts... splits) {
+TINYTENSOR_EXPORT auto random_split(T &&dataset, uint64_t seed, Ts... splits) {
     Generator gen(seed);
     return random_split(std::forward<T>(dataset), gen, std::make_tuple(splits...));
 }
@@ -257,7 +259,8 @@ auto random_split(T &&dataset, uint64_t seed, Ts... splits) {
  */
 template <IsDataset T>
     requires(!std::is_lvalue_reference_v<T>)
-auto random_split(T &&dataset, uint64_t seed, const std::vector<int> &splits) -> std::vector<DatasetView<T>> {
+TINYTENSOR_EXPORT auto random_split(T &&dataset, uint64_t seed, const std::vector<int> &splits)
+    -> std::vector<DatasetView<T>> {
     Generator gen(seed);
     return random_split(std::forward<T>(dataset), gen, splits);
 }
@@ -266,7 +269,7 @@ auto random_split(T &&dataset, uint64_t seed, const std::vector<int> &splits) ->
 // This facilitates batching and shuffling of a dataset
 // DataLoaders take views over datasets, which can be created using random_split
 template <IsDataset T>
-class DataLoader {
+class TINYTENSOR_EXPORT DataLoader {
 public:
     // Iterator support for range loops
     class Iterator {
