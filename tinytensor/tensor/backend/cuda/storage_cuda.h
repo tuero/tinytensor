@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -38,7 +39,7 @@ public:
 
     // Construct from stl vector
     template <typename T>
-    StorageCUDA(const std::vector<T> &data);
+    StorageCUDA(int device_num, const std::vector<T> &data);
 
     // Construct from device memory
     template <typename T>
@@ -46,7 +47,7 @@ public:
 
     // Construct from device memory
     template <typename T>
-    StorageCUDA(std::size_t n, T value);
+    StorageCUDA(int device_num, std::size_t n, T value);
 
     ~StorageCUDA() override = default;
     StorageCUDA(const StorageCUDA &) = delete;
@@ -55,16 +56,19 @@ public:
     auto operator=(StorageCUDA &&) -> StorageCUDA & = delete;
 
     template <typename T>
-    static auto arange(std::size_t) -> StorageCUDA;
+    static auto arange(int device_num, std::size_t) -> StorageCUDA;
 
     template <typename T>
     auto item(int index) -> T;
 
     StorageT dev_memory;
 
-    inline static uint64_t current_bytes_allocated = 0;
-    inline static uint64_t total_bytes_allocated = 0;
+    inline static std::unordered_map<int, uint64_t> current_bytes_allocated;
+    inline static std::unordered_map<int, uint64_t> total_bytes_allocated;
 };
+
+// Get the number of cuda devices
+auto get_device_count() -> int;
 
 }    // namespace tinytensor::cuda
 

@@ -23,11 +23,11 @@ namespace tinytensor::cuda {
 using namespace common::kernel::unary;
 
 template <typename T, typename R, typename KernelOp>
-auto _cast_runner(const DataInfo<const T> &tensor_info, int N) -> std::unique_ptr<StorageCUDA> {
-    auto res_dev_memory = DeviceMemory<R>::AllocateElements(static_cast<std::size_t>(N));
+auto _cast_runner(int device_id, const DataInfo<const T> &tensor_info, int N) -> std::unique_ptr<StorageCUDA> {
+    auto res_dev_memory = DeviceMemory<R>::AllocateElements(device_id, static_cast<std::size_t>(N));
 
     const auto kernel = kernel::unary::unary_kernel<true, T, R, KernelOp>;
-    launch(kernel, grid_1d(N), block_1d(), tensor_info, DeviceSpan<R>{res_dev_memory}, KernelOp{}, N);
+    launch(device_id, kernel, grid_1d(N), block_1d(), tensor_info, DeviceSpan<R>{res_dev_memory}, KernelOp{}, N);
     return std::make_unique<StorageCUDA>(std::move(res_dev_memory));
 }
 
@@ -35,10 +35,11 @@ auto cast_runner(const Tensor &tensor, ScalarType dtype) -> Tensor {
     const auto res_shape = tensor.shape();
     const auto res_device = tensor.device();
     const int N = tensor.numel();
+    const int device_id = tensor.device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto shape = MakeDeviceMemory(tensor.shape());
-    const auto stride = MakeDeviceMemory(tensor.stride());
+    const auto shape = MakeDeviceMemory(device_id, tensor.shape());
+    const auto stride = MakeDeviceMemory(device_id, tensor.stride());
 
     return std::visit(
         [&](auto &&tensor_dev_memory) -> Tensor {
@@ -53,37 +54,37 @@ auto cast_runner(const Tensor &tensor, ScalarType dtype) -> Tensor {
                 case kBool: {
                     using R = to_ctype_t<kBool>;
                     using KernOp = OpIdentity<R>;
-                    return _cast_runner<T, R, KernOp>(tensor_info, N);
+                    return _cast_runner<T, R, KernOp>(device_id, tensor_info, N);
                 }
                 case kU8: {
                     using R = to_ctype_t<kU8>;
                     using KernOp = OpIdentity<R>;
-                    return _cast_runner<T, R, KernOp>(tensor_info, N);
+                    return _cast_runner<T, R, KernOp>(device_id, tensor_info, N);
                 }
                 case kI16: {
                     using R = to_ctype_t<kI16>;
                     using KernOp = OpIdentity<R>;
-                    return _cast_runner<T, R, KernOp>(tensor_info, N);
+                    return _cast_runner<T, R, KernOp>(device_id, tensor_info, N);
                 }
                 case kI32: {
                     using R = to_ctype_t<kI32>;
                     using KernOp = OpIdentity<R>;
-                    return _cast_runner<T, R, KernOp>(tensor_info, N);
+                    return _cast_runner<T, R, KernOp>(device_id, tensor_info, N);
                 }
                 case kI64: {
                     using R = to_ctype_t<kI64>;
                     using KernOp = OpIdentity<R>;
-                    return _cast_runner<T, R, KernOp>(tensor_info, N);
+                    return _cast_runner<T, R, KernOp>(device_id, tensor_info, N);
                 }
                 case kF32: {
                     using R = to_ctype_t<kF32>;
                     using KernOp = OpIdentity<R>;
-                    return _cast_runner<T, R, KernOp>(tensor_info, N);
+                    return _cast_runner<T, R, KernOp>(device_id, tensor_info, N);
                 }
                 case kF64: {
                     using R = to_ctype_t<kF64>;
                     using KernOp = OpIdentity<R>;
-                    return _cast_runner<T, R, KernOp>(tensor_info, N);
+                    return _cast_runner<T, R, KernOp>(device_id, tensor_info, N);
                 }
                 }
                 TT_ERROR("Unknown dtype.");

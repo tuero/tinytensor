@@ -316,6 +316,9 @@ public:
 
     [[nodiscard]] virtual auto current_memory_allocated(int device_id) const -> uint64_t = 0;
     [[nodiscard]] virtual auto total_memory_allocated(int device_id) const -> uint64_t = 0;
+
+    // For multi-device backends like CUDA
+    [[nodiscard]] virtual auto get_device_count() const -> int = 0;
 };
 
 }    // namespace tinytensor

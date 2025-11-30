@@ -6,6 +6,10 @@
 #include "tensor/backend/cuda/data_types.cuh"
 #include "tensor/backend/cuda/storage_cuda.h"
 
+#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
+#include <driver_types.h>
+
 #include <cstddef>
 #include <utility>
 #include <variant>
@@ -22,15 +26,15 @@ using kF64CType = to_ctype_t<kF64>;
 
 // Construct from stl vector
 template <typename T>
-StorageCUDA::StorageCUDA(const std::vector<T> &data)
-    : dev_memory(MakeDeviceMemory<T>(data)) {}
+StorageCUDA::StorageCUDA(int device_num, const std::vector<T> &data)
+    : dev_memory(MakeDeviceMemory<T>(device_num, data)) {}
 
-template StorageCUDA::StorageCUDA(const std::vector<kBoolCType> &data);
-template StorageCUDA::StorageCUDA(const std::vector<kI16CType> &data);
-template StorageCUDA::StorageCUDA(const std::vector<kI32CType> &data);
-template StorageCUDA::StorageCUDA(const std::vector<kI64CType> &data);
-template StorageCUDA::StorageCUDA(const std::vector<kF32CType> &data);
-template StorageCUDA::StorageCUDA(const std::vector<kF64CType> &data);
+template StorageCUDA::StorageCUDA(int device_num, const std::vector<kBoolCType> &data);
+template StorageCUDA::StorageCUDA(int device_num, const std::vector<kI16CType> &data);
+template StorageCUDA::StorageCUDA(int device_num, const std::vector<kI32CType> &data);
+template StorageCUDA::StorageCUDA(int device_num, const std::vector<kI64CType> &data);
+template StorageCUDA::StorageCUDA(int device_num, const std::vector<kF32CType> &data);
+template StorageCUDA::StorageCUDA(int device_num, const std::vector<kF64CType> &data);
 
 // Construct from device memory
 template <typename T>
@@ -46,27 +50,27 @@ template StorageCUDA::StorageCUDA(DeviceMemory<kF64CType> &&other);
 
 // Construct from device memory
 template <typename T>
-StorageCUDA::StorageCUDA(std::size_t n, T value)
-    : dev_memory(MakeDeviceMemory<T>(n, value)) {}
+StorageCUDA::StorageCUDA(int device_num, std::size_t n, T value)
+    : dev_memory(MakeDeviceMemory<T>(device_num, n, value)) {}
 
-template StorageCUDA::StorageCUDA(std::size_t n, kBoolCType value);
-template StorageCUDA::StorageCUDA(std::size_t n, kI16CType value);
-template StorageCUDA::StorageCUDA(std::size_t n, kI32CType value);
-template StorageCUDA::StorageCUDA(std::size_t n, kI64CType value);
-template StorageCUDA::StorageCUDA(std::size_t n, kF32CType value);
-template StorageCUDA::StorageCUDA(std::size_t n, kF64CType value);
+template StorageCUDA::StorageCUDA(int device_num, std::size_t n, kBoolCType value);
+template StorageCUDA::StorageCUDA(int device_num, std::size_t n, kI16CType value);
+template StorageCUDA::StorageCUDA(int device_num, std::size_t n, kI32CType value);
+template StorageCUDA::StorageCUDA(int device_num, std::size_t n, kI64CType value);
+template StorageCUDA::StorageCUDA(int device_num, std::size_t n, kF32CType value);
+template StorageCUDA::StorageCUDA(int device_num, std::size_t n, kF64CType value);
 
 template <typename T>
-auto StorageCUDA::arange(std::size_t n) -> StorageCUDA {
-    return DeviceMemory<T>::AllocateArange(n);
+auto StorageCUDA::arange(int device_num, std::size_t n) -> StorageCUDA {
+    return DeviceMemory<T>::AllocateArange(device_num, n);
 }
 
-template auto StorageCUDA::arange<kBoolCType>(std::size_t n) -> StorageCUDA;
-template auto StorageCUDA::arange<kI16CType>(std::size_t n) -> StorageCUDA;
-template auto StorageCUDA::arange<kI32CType>(std::size_t n) -> StorageCUDA;
-template auto StorageCUDA::arange<kI64CType>(std::size_t n) -> StorageCUDA;
-template auto StorageCUDA::arange<kF32CType>(std::size_t n) -> StorageCUDA;
-template auto StorageCUDA::arange<kF64CType>(std::size_t n) -> StorageCUDA;
+template auto StorageCUDA::arange<kBoolCType>(int device_num, std::size_t n) -> StorageCUDA;
+template auto StorageCUDA::arange<kI16CType>(int device_num, std::size_t n) -> StorageCUDA;
+template auto StorageCUDA::arange<kI32CType>(int device_num, std::size_t n) -> StorageCUDA;
+template auto StorageCUDA::arange<kI64CType>(int device_num, std::size_t n) -> StorageCUDA;
+template auto StorageCUDA::arange<kF32CType>(int device_num, std::size_t n) -> StorageCUDA;
+template auto StorageCUDA::arange<kF64CType>(int device_num, std::size_t n) -> StorageCUDA;
 
 template <typename T>
 auto StorageCUDA::item(int index) -> T {
@@ -78,5 +82,11 @@ template auto StorageCUDA::item<kI32CType>(int index) -> int32_t;
 template auto StorageCUDA::item<kI64CType>(int index) -> int64_t;
 template auto StorageCUDA::item<kF32CType>(int index) -> float;
 template auto StorageCUDA::item<kF64CType>(int index) -> double;
+
+auto get_device_count() -> int {
+    int device_count = 0;
+    cudaGetDeviceCount(&device_count);
+    return device_count;
+}
 
 }    // namespace tinytensor::cuda

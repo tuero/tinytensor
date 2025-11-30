@@ -3218,6 +3218,10 @@ auto total_memory_allocated(const Device &device) -> uint64_t {
     return get_backend(device)->total_memory_allocated(device.id);
 }
 
+auto get_device_count(Backend backend) -> int {
+    return get_backend(backend)->get_device_count();
+}
+
 auto make_dot(const Tensor &tensor) -> std::string {
     std::stringstream ss;
     ss << "digraph ComputationGraph { ";

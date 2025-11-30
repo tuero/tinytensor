@@ -73,14 +73,16 @@ auto batched_conv2d_forward_runner(
     // conv requires contiguous data
     const auto input_cont = input.contiguous();
 
+    const int device_id = input.device().id;
+
     // Setup bias if passed
     std::optional<Tensor> expanded_bias;
     std::optional<DeviceMemory<int>> bias_shape;
     std::optional<DeviceMemory<int>> bias_stride;
     if (bias) {
         expanded_bias = bias->contiguous().reshape({C_out, 1, 1}).expand({C_out, H_out, W_out});
-        bias_shape = MakeDeviceMemory(expanded_bias->shape());
-        bias_stride = MakeDeviceMemory(expanded_bias->stride());
+        bias_shape = MakeDeviceMemory(device_id, expanded_bias->shape());
+        bias_stride = MakeDeviceMemory(device_id, expanded_bias->stride());
     }
 
     // input and weight need to be same type, so visit on one to reduce codegen
@@ -90,11 +92,12 @@ auto batched_conv2d_forward_runner(
             using T = template_parameter_t<DT>;                             // Underlying type
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(res_shape.numel()));
+            auto res_dev_memory =
+                DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(res_shape.numel()));
 
             // Allocate for input unrolled for matmul
             auto input_unrolled_dev_memory =
-                DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(input_unrolled_size));
+                DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(input_unrolled_size));
 
             // Get operand data spans
             // Data can have an offset whilst still being contiguous
@@ -127,6 +130,7 @@ auto batched_conv2d_forward_runner(
             for (int b = 0; b < B; ++b) {
                 // Unroll this batch item from input to input_unrolled
                 launch(
+                    device_id,
                     unroll_kernel<T>,
                     grid_dim_unroll,
                     block_dim_unroll,
@@ -143,6 +147,7 @@ auto batched_conv2d_forward_runner(
                 // Perform unrolled matmul
                 const DeviceSpan<T> res_span{res_data_ptr, static_cast<std::size_t>(C_out * H_out * W_out)};
                 launch(
+                    device_id,
                     matmul_kernel<T>,
                     grid_dim_matmul,
                     block_dim_matmul,
@@ -165,6 +170,7 @@ auto batched_conv2d_forward_runner(
                     using KernelOp = typename common::binary::OpFactory<T, BinaryOpT::add>::KernelOp;
                     const auto kernel = binary_kernel<T, KernelOp>;
                     launch(
+                        device_id,
                         kernel,
                         grid_1d(C_out * H_out * W_out),
                         block_1d(),
@@ -230,6 +236,8 @@ auto batched_conv2d_backward_runner(
     // conv requires contiguous data
     const auto input_cont = input.contiguous();
 
+    const int device_id = input.device().id;
+
     // input and weight need to be same type, so visit on one to reduce codegen
     return std::visit(
         [&](auto &&tensor_dev_memory) -> std::tuple<Tensor, Tensor, std::optional<Tensor>> {
@@ -238,13 +246,16 @@ auto batched_conv2d_backward_runner(
             using KernelOp = typename common::binary::OpFactory<T, BinaryOpT::add>::KernelOp;
 
             // Allocate for result
-            auto grad_input_fold = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(input.numel()), 0);
-            auto grad_w_local = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(weight.numel()), 0);
-            auto grad_w_global = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(weight.numel()), 0);
+            auto grad_input_fold =
+                DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(input.numel()), 0);
+            auto grad_w_local =
+                DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(weight.numel()), 0);
+            auto grad_w_global =
+                DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(weight.numel()), 0);
 
             // Allocate for input unrolled for matmul
             auto input_unrolled_dev_memory =
-                DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(input_unrolled_size), 0);
+                DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(input_unrolled_size), 0);
 
             // Get operand data spans
             // Data can have an offset whilst still being contiguous
@@ -286,6 +297,7 @@ auto batched_conv2d_backward_runner(
             for (int b = 0; b < B; ++b) {
                 // Unroll this batch item from input to input_unrolled
                 launch(
+                    device_id,
                     unroll_transpose_kernel<T>,
                     grid_dim_unroll,
                     block_dim_1d,
@@ -310,6 +322,7 @@ auto batched_conv2d_backward_runner(
                 // Call matmaul into local_w
                 // add local_w into global_w grad
                 launch(
+                    device_id,
                     matmul_kernel<T>,
                     grid_dim_matmul_w,
                     block_dim_matmul,
@@ -322,6 +335,7 @@ auto batched_conv2d_backward_runner(
                 );
                 const auto kernel = binary_kernel<T, KernelOp>;
                 launch(
+                    device_id,
                     kernel,
                     grid_1d(weight.numel()),
                     block_dim_1d,
@@ -335,6 +349,7 @@ auto batched_conv2d_backward_runner(
                 // Result is unrolled into reused buffer input_unrolled_span
                 // Need to then roll back up
                 launch(
+                    device_id,
                     matmul_kernel<T>,
                     grid_dim_matmul_input,
                     block_dim_matmul,
@@ -346,6 +361,7 @@ auto batched_conv2d_backward_runner(
                     input_unrolled_width
                 );
                 launch(
+                    device_id,
                     col2im_kernel<T>,
                     grid_dim_unroll,
                     block_dim_1d,
@@ -412,6 +428,8 @@ auto batched_pool2d_forward_runner(const Tensor &input, int kernel_size, int str
     // conv requires contiguous data
     const auto input_cont = input.contiguous();
 
+    const int device_id = input.device().id;
+
     // input and weight need to be same type, so visit on one to reduce codegen
     return std::visit(
         [&](auto &&tensor_dev_memory) -> Tensor {
@@ -421,18 +439,20 @@ auto batched_pool2d_forward_runner(const Tensor &input, int kernel_size, int str
             using KernelOp = typename common::reduce::OpFactory<R, Op>::KernelOp;
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<R>::AllocateElements(static_cast<std::size_t>(res_shape.numel()));
+            auto res_dev_memory =
+                DeviceMemory<R>::AllocateElements(device_id, static_cast<std::size_t>(res_shape.numel()));
 
             // Get operand data spans
             // Data can have an offset whilst still being contiguous
             const T *input_data_ptr = tensor_dev_memory.data_ptr();
-            input_data_ptr += input_cont.offset();
+            input_data_ptr += input_cont.offset();    // NOLINT(*-pointer-arithmetic)
             const DeviceSpan<const T> input_span{input_data_ptr, static_cast<std::size_t>(input_cont.numel())};
 
             const dim3 block_dim = block_2d();
             const dim3 grid_dim(B, C, H_grid * W_grid);
 
             launch(
+                device_id,
                 pool_kernel<T, R, KernelOp>,
                 grid_dim,
                 block_dim,
@@ -491,6 +511,8 @@ auto batched_pool2d_backward_runner(
     // conv requires contiguous data
     const auto input_cont = input.contiguous();
 
+    const int device_id = input.device().id;
+
     // input and weight need to be same type, so visit on one to reduce codegen
     return std::visit(
         [&](auto &&tensor_dev_memory) -> Tensor {
@@ -501,12 +523,13 @@ auto batched_pool2d_backward_runner(
             using KernelOp = typename common::reduce::OpFactory<R, Op>::KernelOp;
 
             // Allocate for result
-            auto grad_input_memory = DeviceMemory<R>::AllocateElements(static_cast<std::size_t>(input.numel()));
+            auto grad_input_memory =
+                DeviceMemory<R>::AllocateElements(device_id, static_cast<std::size_t>(input.numel()));
 
             // Get operand data spans
             // Data can have an offset whilst still being contiguous
             const T *input_data_ptr = tensor_dev_memory.data_ptr();
-            input_data_ptr += input_cont.offset();
+            input_data_ptr += input_cont.offset();    // NOLINT(*-pointer-arithmetic)
             const DeviceSpan<const T> input_span{input_data_ptr, static_cast<std::size_t>(input_cont.numel())};
             const DeviceSpan<const R> res_span{std::get<DR>(result.template get_storage<StorageCUDA>().dev_memory)};
             const DeviceSpan<const R> grad_output_span{
@@ -519,6 +542,7 @@ auto batched_pool2d_backward_runner(
             // Cuda has some trouble with template deduction using concept requires
             if constexpr (std::is_same_v<KernelOp, MinOp<R>> || std::is_same_v<KernelOp, MaxOp<R>>) {
                 launch(
+                    device_id,
                     pool_backward_min_max_kernel<T, R>,
                     grid_dim,
                     block_dim,
@@ -535,6 +559,7 @@ auto batched_pool2d_backward_runner(
                 );
             } else if constexpr (std::is_same_v<KernelOp, MeanOp<R>>) {
                 launch(
+                    device_id,
                     pool_backward_mean_kernel<T, R>,
                     grid_dim,
                     block_dim,

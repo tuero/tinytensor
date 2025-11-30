@@ -27,16 +27,17 @@ using namespace kernel::binary;
 template <BinaryOpT Op>
 auto binary_runner(const Tensor &lhs, const Tensor &rhs) -> Tensor {
     assert(lhs.device() == rhs.device());
+    const int device_id = lhs.device().id;
     const auto res_shape = lhs.shape();
-    const auto res_stride = MakeDeviceMemory(res_shape.to_stride());
+    const auto res_stride = MakeDeviceMemory(device_id, res_shape.to_stride());
     const auto res_device = lhs.device();
     const int N = lhs.numel();
 
     // Create device memory for shape + stride for proper indexing
-    const auto lhs_shape = MakeDeviceMemory(lhs.shape());
-    const auto lhs_stride = MakeDeviceMemory(lhs.stride());
-    const auto rhs_shape = MakeDeviceMemory(rhs.shape());
-    const auto rhs_stride = MakeDeviceMemory(rhs.stride());
+    const auto lhs_shape = MakeDeviceMemory(device_id, lhs.shape());
+    const auto lhs_stride = MakeDeviceMemory(device_id, lhs.stride());
+    const auto rhs_shape = MakeDeviceMemory(device_id, rhs.shape());
+    const auto rhs_stride = MakeDeviceMemory(device_id, rhs.stride());
 
     // lhs and rhs need to be same type, so visit on one to reduce codegen
     return std::visit(
@@ -49,7 +50,7 @@ auto binary_runner(const Tensor &lhs, const Tensor &rhs) -> Tensor {
             using KernelOp = typename OpFactory<std::conditional_t<CastBeforeOp, R, T>, Op>::KernelOp;
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<R>::AllocateElements(static_cast<std::size_t>(N));
+            auto res_dev_memory = DeviceMemory<R>::AllocateElements(device_id, static_cast<std::size_t>(N));
 
             // Get operand data spans
             const DeviceSpan<const T> lhs_span{tensor_dev_memory};
@@ -60,7 +61,7 @@ auto binary_runner(const Tensor &lhs, const Tensor &rhs) -> Tensor {
             const DataInfo<const T> r{rhs_span, rhs_shape, rhs_stride, rhs.offset()};
 
             const auto kernel = binary_kernel<CastBeforeOp, T, R, KernelOp>;
-            launch(kernel, grid_1d(N), block_1d(), l, r, DeviceSpan<R>{res_dev_memory}, KernelOp{}, N);
+            launch(device_id, kernel, grid_1d(N), block_1d(), l, r, DeviceSpan<R>{res_dev_memory}, KernelOp{}, N);
             return {
                 std::make_unique<StorageCUDA>(std::move(res_dev_memory)),
                 Result<T, Op>::scalar(lhs.dtype()),
@@ -76,12 +77,13 @@ template <BinaryOpT Op>
 void binary_inplace_runner(Tensor &lhs, const Tensor &rhs) {
     assert(lhs.device() == rhs.device());
     const int N = lhs.numel();
+    const int device_id = lhs.device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto lhs_shape = MakeDeviceMemory(lhs.shape());
-    const auto lhs_stride = MakeDeviceMemory(lhs.stride());
-    const auto rhs_shape = MakeDeviceMemory(rhs.shape());
-    const auto rhs_stride = MakeDeviceMemory(rhs.stride());
+    const auto lhs_shape = MakeDeviceMemory(device_id, lhs.shape());
+    const auto lhs_stride = MakeDeviceMemory(device_id, lhs.stride());
+    const auto rhs_shape = MakeDeviceMemory(device_id, rhs.shape());
+    const auto rhs_stride = MakeDeviceMemory(device_id, rhs.stride());
 
     // lhs and rhs need to be same type, so visit on one to reduce codegen
     return std::visit(
@@ -99,7 +101,7 @@ void binary_inplace_runner(Tensor &lhs, const Tensor &rhs) {
             const DataInfo<const T> r{rhs_span, rhs_shape, rhs_stride, rhs.offset()};
 
             const auto kernel = binary_kernel<T, KernelOp>;
-            launch(kernel, grid_1d(N), block_1d(), l, r, KernelOp{}, N);
+            launch(device_id, kernel, grid_1d(N), block_1d(), l, r, KernelOp{}, N);
         },
         lhs.template get_storage<StorageCUDA>().dev_memory
     );

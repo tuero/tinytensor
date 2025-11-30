@@ -35,8 +35,9 @@ auto reduce_dim_runner(const Tensor &tensor, int dim) -> Tensor {
     const int N = res_shape.numel();
 
     // Create device memory for shape + stride for proper indexing
-    const auto shape = MakeDeviceMemory(tensor.shape());
-    const auto stride = MakeDeviceMemory(tensor.stride());
+    const int device_id = tensor.device().id;
+    const auto shape = MakeDeviceMemory(device_id, tensor.shape());
+    const auto stride = MakeDeviceMemory(device_id, tensor.stride());
 
     return std::visit(
         [&](auto &&dev_memory) -> Tensor {
@@ -47,7 +48,7 @@ auto reduce_dim_runner(const Tensor &tensor, int dim) -> Tensor {
             using KernelOp = typename OpFactory<V, Op>::KernelOp;
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<R>::AllocateElements(static_cast<std::size_t>(N));
+            auto res_dev_memory = DeviceMemory<R>::AllocateElements(device_id, static_cast<std::size_t>(N));
 
             const DataInfo<const T> input_info{dev_memory, shape, stride, tensor.offset()};
 
@@ -55,6 +56,7 @@ auto reduce_dim_runner(const Tensor &tensor, int dim) -> Tensor {
             // where each thread sums over the reduced dim
             const auto kernel = reduce_dim_kernel<T, R, KernelOp>;
             launch(
+                device_id,
                 kernel,
                 grid_1d(N),
                 block_1d(),
@@ -84,8 +86,9 @@ auto reduce_all_runner(const Tensor &tensor) -> Tensor {
     const auto res_device = tensor.device();
     int N = tensor.numel();
     // Create device memory for shape + stride for proper indexing
-    const auto arr_shape = MakeDeviceMemory(tensor.shape());
-    const auto arr_stride = MakeDeviceMemory(tensor.stride());
+    const int device_id = tensor.device().id;
+    const auto arr_shape = MakeDeviceMemory(device_id, tensor.shape());
+    const auto arr_stride = MakeDeviceMemory(device_id, tensor.stride());
 
     return std::visit(
         [&](auto &&dev_memory) -> Tensor {
@@ -100,7 +103,7 @@ auto reduce_all_runner(const Tensor &tensor) -> Tensor {
             const auto block_dim = block_1d();
 
             // Result
-            auto res_memory = DeviceMemory<R>::AllocateElements(1);
+            auto res_memory = DeviceMemory<R>::AllocateElements(device_id, 1);
 
             DataInfo<const T> input_info{dev_memory, arr_shape, arr_stride, tensor.offset()};
 
@@ -108,6 +111,7 @@ auto reduce_all_runner(const Tensor &tensor) -> Tensor {
             // into result
             if (grid_dim.x <= 1) {
                 launch(
+                    device_id,
                     reduce_all_kernel<T, R, KernelOp>,
                     grid_dim,
                     block_dim,
@@ -121,10 +125,11 @@ auto reduce_all_runner(const Tensor &tensor) -> Tensor {
 
             // Otherwise, we need multiple reduction passes and need to allocate temporary buffers
             // to reduce into
-            auto reduction_memory_in = DeviceMemory<R>::AllocateElements(grid_dim.x);
-            auto reduction_memory_out = DeviceMemory<R>::AllocateElements(grid_dim.x);
+            auto reduction_memory_in = DeviceMemory<R>::AllocateElements(device_id, grid_dim.x);
+            auto reduction_memory_out = DeviceMemory<R>::AllocateElements(device_id, grid_dim.x);
 
             launch(
+                device_id,
                 kernel::reduce::reduce_all_kernel<T, R, KernelOp>,
                 grid_dim,
                 block_dim,
@@ -140,6 +145,7 @@ auto reduce_all_runner(const Tensor &tensor) -> Tensor {
                 std::swap(reduction_memory_in, reduction_memory_out);
                 // All buffers are type R now
                 launch(
+                    device_id,
                     kernel::reduce::reduce_all_kernel<R, R, KernelOp>,
                     grid_dim,
                     block_dim,

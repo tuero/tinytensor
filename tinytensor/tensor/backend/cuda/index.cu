@@ -27,14 +27,15 @@ auto index_indices_runner(const Tensor &input, const Tensor &indices) -> Tensor 
     using U = to_ctype_t<kDefaultInt>;
     const auto &indices_dev_memory = std::get<DeviceMemory<U>>(indices.get_storage<StorageCUDA>().dev_memory);
     const auto N = indices.numel();
+    const int device_id = input.device().id;
 
     const auto res_device = input.device();
 
     // Create device memory for shape + stride for proper indexing
-    const auto input_shape = MakeDeviceMemory(input.shape());
-    const auto input_stride = MakeDeviceMemory(input.stride());
-    const auto indices_shape = MakeDeviceMemory(indices.shape());
-    const auto indices_stride = MakeDeviceMemory(indices.stride());
+    const auto input_shape = MakeDeviceMemory(device_id, input.shape());
+    const auto input_stride = MakeDeviceMemory(device_id, input.stride());
+    const auto indices_shape = MakeDeviceMemory(device_id, indices.shape());
+    const auto indices_stride = MakeDeviceMemory(device_id, indices.stride());
 
     return std::visit(
         [&](auto &&input_dev_memory) -> Tensor {
@@ -49,14 +50,23 @@ auto index_indices_runner(const Tensor &input, const Tensor &indices) -> Tensor 
             const DataInfo<const U> indices_info{indices_span, indices_shape, indices_stride, indices.offset()};
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(N));
+            auto res_dev_memory = DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(N));
             auto res_span = DeviceSpan<T>{res_dev_memory};
 
             int num_blocks = ceil_div(N, SECTION_SIZE);
             dim3 blockDim(SECTION_SIZE);
             dim3 gridDim(num_blocks);
 
-            launch(index_indices_kernel<T>, gridDim, blockDim, input_info, indices_info, DataInfo{res_span}, N);
+            launch(
+                device_id,
+                index_indices_kernel<T>,
+                gridDim,
+                blockDim,
+                input_info,
+                indices_info,
+                DataInfo{res_span},
+                N
+            );
 
             return {std::make_unique<StorageCUDA>(std::move(res_dev_memory)), input.dtype(), {N}, res_device};
         },
@@ -70,14 +80,15 @@ void index_put_indices_runner(Tensor &input, const Tensor &values, const Tensor 
     using U = to_ctype_t<kDefaultInt>;
     const auto &indices_dev_memory = std::get<DeviceMemory<U>>(indices.get_storage<StorageCUDA>().dev_memory);
     const auto N = indices.numel();
+    const int device_id = input.device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto input_shape = MakeDeviceMemory(input.shape());
-    const auto input_stride = MakeDeviceMemory(input.stride());
-    const auto values_shape = MakeDeviceMemory(values.shape());
-    const auto values_stride = MakeDeviceMemory(values.stride());
-    const auto indices_shape = MakeDeviceMemory(indices.shape());
-    const auto indices_stride = MakeDeviceMemory(indices.stride());
+    const auto input_shape = MakeDeviceMemory(device_id, input.shape());
+    const auto input_stride = MakeDeviceMemory(device_id, input.stride());
+    const auto values_shape = MakeDeviceMemory(device_id, values.shape());
+    const auto values_stride = MakeDeviceMemory(device_id, values.stride());
+    const auto indices_shape = MakeDeviceMemory(device_id, indices.shape());
+    const auto indices_stride = MakeDeviceMemory(device_id, indices.stride());
 
     std::visit(
         [&](auto &&input_dev_memory) {
@@ -97,7 +108,7 @@ void index_put_indices_runner(Tensor &input, const Tensor &values, const Tensor 
             dim3 blockDim(SECTION_SIZE);
             dim3 gridDim(num_blocks);
 
-            launch(index_put_indices_kernel<T>, gridDim, blockDim, input_info, values_info, indices_info, N);
+            launch(device_id, index_put_indices_kernel<T>, gridDim, blockDim, input_info, values_info, indices_info, N);
         },
         input.get_storage<StorageCUDA>().dev_memory
     );
@@ -108,14 +119,15 @@ auto index_mask_runner(const Tensor &input, const Tensor &mask, int Nr) -> Tenso
     assert(input.device() == mask.device());
     const auto &mask_dev_memory = std::get<DeviceMemory<uint8_t>>(mask.get_storage<StorageCUDA>().dev_memory);
     const auto Ni = input.numel();
+    const int device_id = input.device().id;
 
     const auto res_device = input.device();
 
     // Create device memory for shape + stride for proper indexing
-    const auto input_shape = MakeDeviceMemory(input.shape());
-    const auto input_stride = MakeDeviceMemory(input.stride());
-    const auto mask_shape = MakeDeviceMemory(mask.shape());
-    const auto mask_stride = MakeDeviceMemory(mask.stride());
+    const auto input_shape = MakeDeviceMemory(device_id, input.shape());
+    const auto input_stride = MakeDeviceMemory(device_id, input.stride());
+    const auto mask_shape = MakeDeviceMemory(device_id, mask.shape());
+    const auto mask_stride = MakeDeviceMemory(device_id, mask.stride());
 
     return std::visit(
         [&](auto &&input_dev_memory) -> Tensor {
@@ -130,23 +142,34 @@ auto index_mask_runner(const Tensor &input, const Tensor &mask, int Nr) -> Tenso
             const DataInfo<const uint8_t> mask_info{mask_span, mask_shape, mask_stride, mask.offset()};
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(Nr));
+            auto res_dev_memory = DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(Nr));
             auto res_span = DeviceSpan<T>{res_dev_memory};
 
             // Hierarchy of prefix sums depending on input size
             if (Ni <= SECTION_SIZE) {
-                launch(kernel_mask_small<T>, {1}, {SECTION_SIZE}, input_info, mask_info, DataInfo{res_span}, Ni);
+                launch(
+                    device_id,
+                    kernel_mask_small<T>,
+                    {1},
+                    {SECTION_SIZE},
+                    input_info,
+                    mask_info,
+                    DataInfo{res_span},
+                    Ni
+                );
             } else if (Ni <= SECTION_SIZE * SECTION_SIZE) {
                 int num_blocks = ceil_div(Ni, SECTION_SIZE);
                 dim3 blockDim(SECTION_SIZE);
                 dim3 gridDim(num_blocks);
-                auto prefix_sum_dev_memory = DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(Ni));
+                auto prefix_sum_dev_memory =
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(Ni));
                 auto scan_block_sum_dev_memory =
-                    DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(num_blocks));
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(num_blocks));
 
                 auto prefix_sum_span = DeviceSpan<int>{prefix_sum_dev_memory};
                 auto scan_block_sum_span = DeviceSpan<int>{scan_block_sum_dev_memory};
                 launch(
+                    device_id,
                     kernel_mask_medium_phase1,
                     gridDim,
                     blockDim,
@@ -155,8 +178,9 @@ auto index_mask_runner(const Tensor &input, const Tensor &mask, int Nr) -> Tenso
                     scan_block_sum_span,
                     Ni
                 );
-                launch(kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum_span, num_blocks);
+                launch(device_id, kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum_span, num_blocks);
                 launch(
+                    device_id,
                     kernel_mask_medium_phase3<T>,
                     gridDim,
                     blockDim,
@@ -172,16 +196,18 @@ auto index_mask_runner(const Tensor &input, const Tensor &mask, int Nr) -> Tenso
                 int num_blocks_phase2 = ceil_div(num_blocks_phase1, SECTION_SIZE);
                 dim3 blockDim(SECTION_SIZE);
 
-                auto prefix_sum_dev_memory = DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(Ni));
+                auto prefix_sum_dev_memory =
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(Ni));
                 auto scan_block_sum1_dev_memory =
-                    DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(num_blocks_phase1));
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(num_blocks_phase1));
                 auto scan_block_sum2_dev_memory =
-                    DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(num_blocks_phase2));
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(num_blocks_phase2));
 
                 auto prefix_sum_span = DeviceSpan<int>{prefix_sum_dev_memory};
                 auto scan_block_sum1_span = DeviceSpan<int>{scan_block_sum1_dev_memory};
                 auto scan_block_sum2_span = DeviceSpan<int>{scan_block_sum2_dev_memory};
                 launch(
+                    device_id,
                     kernel_mask_medium_phase1,
                     num_blocks_phase1,
                     blockDim,
@@ -191,6 +217,7 @@ auto index_mask_runner(const Tensor &input, const Tensor &mask, int Nr) -> Tenso
                     Ni
                 );
                 launch(
+                    device_id,
                     kernel_mask_large_phase2,
                     num_blocks_phase2,
                     blockDim,
@@ -198,8 +225,9 @@ auto index_mask_runner(const Tensor &input, const Tensor &mask, int Nr) -> Tenso
                     scan_block_sum2_span,
                     num_blocks_phase1
                 );
-                launch(kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum2_span, num_blocks_phase2);
+                launch(device_id, kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum2_span, num_blocks_phase2);
                 launch(
+                    device_id,
                     kernel_mask_large_phase3,
                     num_blocks_phase2,
                     blockDim,
@@ -208,6 +236,7 @@ auto index_mask_runner(const Tensor &input, const Tensor &mask, int Nr) -> Tenso
                     num_blocks_phase1
                 );
                 launch(
+                    device_id,
                     kernel_mask_medium_phase3<T>,
                     num_blocks_phase1,
                     blockDim,
@@ -231,14 +260,15 @@ void index_put_mask_runner(Tensor &input, const Tensor &values, const Tensor &ma
     assert(input.device() == values.device() && input.device() == mask.device());
     const auto &mask_dev_memory = std::get<DeviceMemory<uint8_t>>(mask.get_storage<StorageCUDA>().dev_memory);
     const auto Ni = input.numel();
+    const int device_id = input.device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto input_shape = MakeDeviceMemory(input.shape());
-    const auto input_stride = MakeDeviceMemory(input.stride());
-    const auto values_shape = MakeDeviceMemory(values.shape());
-    const auto values_stride = MakeDeviceMemory(values.stride());
-    const auto mask_shape = MakeDeviceMemory(mask.shape());
-    const auto mask_stride = MakeDeviceMemory(mask.stride());
+    const auto input_shape = MakeDeviceMemory(device_id, input.shape());
+    const auto input_stride = MakeDeviceMemory(device_id, input.stride());
+    const auto values_shape = MakeDeviceMemory(device_id, values.shape());
+    const auto values_stride = MakeDeviceMemory(device_id, values.stride());
+    const auto mask_shape = MakeDeviceMemory(device_id, mask.shape());
+    const auto mask_stride = MakeDeviceMemory(device_id, mask.stride());
 
     std::visit(
         [&](auto &&input_dev_memory) {
@@ -256,18 +286,29 @@ void index_put_mask_runner(Tensor &input, const Tensor &values, const Tensor &ma
 
             // Hierarchy of prefix sums depending on input size
             if (Ni <= SECTION_SIZE) {
-                launch(kernel_input_put_mask_small<T>, {1}, {SECTION_SIZE}, input_info, values_info, mask_info, Ni);
+                launch(
+                    device_id,
+                    kernel_input_put_mask_small<T>,
+                    {1},
+                    {SECTION_SIZE},
+                    input_info,
+                    values_info,
+                    mask_info,
+                    Ni
+                );
             } else if (Ni <= SECTION_SIZE * SECTION_SIZE) {
                 int num_blocks = ceil_div(Ni, SECTION_SIZE);
                 dim3 blockDim(SECTION_SIZE);
                 dim3 gridDim(num_blocks);
-                auto prefix_sum_dev_memory = DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(Ni));
+                auto prefix_sum_dev_memory =
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(Ni));
                 auto scan_block_sum_dev_memory =
-                    DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(num_blocks));
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(num_blocks));
 
                 auto prefix_sum_span = DeviceSpan<int>{prefix_sum_dev_memory};
                 auto scan_block_sum_span = DeviceSpan<int>{scan_block_sum_dev_memory};
                 launch(
+                    device_id,
                     kernel_mask_medium_phase1,
                     gridDim,
                     blockDim,
@@ -276,8 +317,9 @@ void index_put_mask_runner(Tensor &input, const Tensor &values, const Tensor &ma
                     scan_block_sum_span,
                     Ni
                 );
-                launch(kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum_span, num_blocks);
+                launch(device_id, kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum_span, num_blocks);
                 launch(
+                    device_id,
                     kernel_input_put_mask_medium_phase3<T>,
                     gridDim,
                     blockDim,
@@ -293,16 +335,18 @@ void index_put_mask_runner(Tensor &input, const Tensor &values, const Tensor &ma
                 int num_blocks_phase2 = ceil_div(num_blocks_phase1, SECTION_SIZE);
                 dim3 blockDim(SECTION_SIZE);
 
-                auto prefix_sum_dev_memory = DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(Ni));
+                auto prefix_sum_dev_memory =
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(Ni));
                 auto scan_block_sum1_dev_memory =
-                    DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(num_blocks_phase1));
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(num_blocks_phase1));
                 auto scan_block_sum2_dev_memory =
-                    DeviceMemory<int>::AllocateElements(static_cast<std::size_t>(num_blocks_phase2));
+                    DeviceMemory<int>::AllocateElements(device_id, static_cast<std::size_t>(num_blocks_phase2));
 
                 auto prefix_sum_span = DeviceSpan<int>{prefix_sum_dev_memory};
                 auto scan_block_sum1_span = DeviceSpan<int>{scan_block_sum1_dev_memory};
                 auto scan_block_sum2_span = DeviceSpan<int>{scan_block_sum2_dev_memory};
                 launch(
+                    device_id,
                     kernel_mask_medium_phase1,
                     num_blocks_phase1,
                     blockDim,
@@ -312,6 +356,7 @@ void index_put_mask_runner(Tensor &input, const Tensor &values, const Tensor &ma
                     Ni
                 );
                 launch(
+                    device_id,
                     kernel_mask_large_phase2,
                     num_blocks_phase2,
                     blockDim,
@@ -319,8 +364,9 @@ void index_put_mask_runner(Tensor &input, const Tensor &values, const Tensor &ma
                     scan_block_sum2_span,
                     num_blocks_phase1
                 );
-                launch(kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum2_span, num_blocks_phase2);
+                launch(device_id, kernel_mask_medium_phase2, {1}, blockDim, scan_block_sum2_span, num_blocks_phase2);
                 launch(
+                    device_id,
                     kernel_mask_large_phase3,
                     num_blocks_phase2,
                     blockDim,
@@ -329,6 +375,7 @@ void index_put_mask_runner(Tensor &input, const Tensor &values, const Tensor &ma
                     num_blocks_phase1
                 );
                 launch(
+                    device_id,
                     kernel_input_put_mask_medium_phase3<T>,
                     num_blocks_phase1,
                     blockDim,

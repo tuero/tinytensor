@@ -29,13 +29,13 @@ template <typename T>
     requires(!std::is_const_v<T>)
 class DeviceMemory {
     // Init buffer of size n
-    DeviceMemory(std::size_t n);
+    DeviceMemory(int device_id, std::size_t n);
 
     // Init buffer of size n and initialize with given value
-    DeviceMemory(std::size_t n, T value);
+    DeviceMemory(int device_id, std::size_t n, T value);
 
     // Construct from host vector
-    DeviceMemory(const std::vector<std::remove_cv_t<T>> &v);
+    DeviceMemory(int device_id, const std::vector<std::remove_cv_t<T>> &v);
 
 public:
     DeviceMemory() = default;
@@ -45,12 +45,13 @@ public:
     void swap(DeviceMemory<T> &other) noexcept {
         std::swap(_p, other._p);
         std::swap(_n, other._n);
+        std::swap(_device_id, other._device_id);
     }
 
     // Can move construct, but doesn't make sense to copy/move assign
     DeviceMemory(const DeviceMemory &) = delete;
     DeviceMemory(DeviceMemory &&other)
-        : _p(other._p), _n(other._n) {
+        : _p(other._p), _n(other._n), _device_id(other._device_id) {
         other._p = nullptr;
     };
     DeviceMemory &operator=(const DeviceMemory &) = delete;
@@ -59,17 +60,17 @@ public:
     [[nodiscard]] auto clone() const -> DeviceMemory;
 
     // Constructors
-    [[nodiscard]] static auto AllocateElements(std::size_t n) -> DeviceMemory {
-        return {n};
+    [[nodiscard]] static auto AllocateElements(int device_id, std::size_t n) -> DeviceMemory {
+        return {device_id, n};
     }
-    [[nodiscard]] static auto AllocateElements(std::size_t n, T value) -> DeviceMemory {
-        return {n, value};
+    [[nodiscard]] static auto AllocateElements(int device_id, std::size_t n, T value) -> DeviceMemory {
+        return {device_id, n, value};
     }
-    [[nodiscard]] static auto AllocateVec(const std::vector<std::remove_cv_t<T>> &v) -> DeviceMemory {
-        return {v};
+    [[nodiscard]] static auto AllocateVec(int device_id, const std::vector<std::remove_cv_t<T>> &v) -> DeviceMemory {
+        return {device_id, v};
     }
 
-    [[nodiscard]] static auto AllocateArange(std::size_t n) -> DeviceMemory;
+    [[nodiscard]] static auto AllocateArange(int device_id, std::size_t n) -> DeviceMemory;
 
     // Convert to host vector
     [[nodiscard]] auto to_vec() const -> std::vector<std::remove_cv_t<T>>;
@@ -96,21 +97,22 @@ public:
 private:
     T *_p = nullptr;
     std::size_t _n = 0;
+    int _device_id = 0;
 };
 
 // Factory functions
 template <typename T>
-auto MakeDeviceMemory(const std::vector<std::remove_cv_t<T>> &v) -> DeviceMemory<T> {
-    return DeviceMemory<T>::AllocateVec(v);
+auto MakeDeviceMemory(int device_id, const std::vector<std::remove_cv_t<T>> &v) -> DeviceMemory<T> {
+    return DeviceMemory<T>::AllocateVec(device_id, v);
 }
 
 template <typename T>
-auto MakeDeviceMemory(std::size_t n, T value) -> DeviceMemory<T> {
-    return DeviceMemory<T>::AllocateElements(n, value);
+auto MakeDeviceMemory(int device_id, std::size_t n, T value) -> DeviceMemory<T> {
+    return DeviceMemory<T>::AllocateElements(device_id, n, value);
 }
 
-inline auto MakeDeviceMemory(const Shape &shape) -> DeviceMemory<int> {
-    return DeviceMemory<int>::AllocateVec(shape.to_vec());
+inline auto MakeDeviceMemory(int device_id, const Shape &shape) -> DeviceMemory<int> {
+    return DeviceMemory<int>::AllocateVec(device_id, shape.to_vec());
 }
 
 // Device data + offsets to access elements from shared data

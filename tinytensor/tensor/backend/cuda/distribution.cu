@@ -45,6 +45,7 @@ auto _dist_runner(Generator &gen, const Params &...params) -> Tensor {
     std::tuple<Params...> params_cont(params.contiguous()...);
     const int N = std::get<0>(params_cont).numel();
     const auto gen_states = create_gen_states(gen, static_cast<std::size_t>(N));
+    const int device_id = std::get<0>(params_cont).device().id;
     return std::visit(
         [&](auto &&param_dev_memory) -> Tensor {
             using DT = std::remove_cvref_t<decltype(param_dev_memory)>;    // Storage type
@@ -54,8 +55,8 @@ auto _dist_runner(Generator &gen, const Params &...params) -> Tensor {
                 using KernelOp = typename OpFactory<T, Op>::KernelOp;
 
                 // Allocate for result
-                auto gen_states_dev_memory = DeviceMemory<uint64_t>::AllocateVec(gen_states);
-                auto res_dev_memory = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(N));
+                auto gen_states_dev_memory = DeviceMemory<uint64_t>::AllocateVec(device_id, gen_states);
+                auto res_dev_memory = DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(N));
 
                 // Get operand data spans
                 const auto param_spans = std::apply(
@@ -78,6 +79,7 @@ auto _dist_runner(Generator &gen, const Params &...params) -> Tensor {
                     [&](auto &&...args) {
                         const auto kernel = variadic_param_kernel<T, KernelOp, decltype(args)...>;
                         launch(
+                            device_id,
                             kernel,
                             grid_1d(N),
                             block_1d(),
@@ -119,10 +121,11 @@ void _dist_inplace_runner(Tensor &tensor, Generator &gen, const Params &...param
     std::tuple<Params...> params_cont(params.contiguous()...);
     const int N = std::get<0>(params_cont).numel();
     const auto gen_states = create_gen_states(gen, static_cast<std::size_t>(N));
+    const int device_id = std::get<0>(params_cont).device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto shape = MakeDeviceMemory(tensor.shape());
-    const auto stride = MakeDeviceMemory(tensor.stride());
+    const auto shape = MakeDeviceMemory(device_id, tensor.shape());
+    const auto stride = MakeDeviceMemory(device_id, tensor.stride());
     return std::visit(
         [&](auto &&dev_memory) {
             using DT = std::remove_cvref_t<decltype(dev_memory)>;    // Storage type
@@ -131,7 +134,7 @@ void _dist_inplace_runner(Tensor &tensor, Generator &gen, const Params &...param
             if constexpr (OpProperties<T, Op>::IsSupported) {
                 using KernelOp = typename OpFactory<T, Op>::KernelOp;
 
-                auto gen_states_dev_memory = DeviceMemory<uint64_t>::AllocateVec(gen_states);
+                auto gen_states_dev_memory = DeviceMemory<uint64_t>::AllocateVec(device_id, gen_states);
                 const DeviceSpan<const uint64_t> gen_span{gen_states_dev_memory};
                 const DataInfo<T> res{dev_memory, shape, stride, tensor.offset()};
 
@@ -154,6 +157,7 @@ void _dist_inplace_runner(Tensor &tensor, Generator &gen, const Params &...param
                     [&](auto &&...args) {
                         const auto kernel = variadic_param_kernel<T, KernelOp, decltype(args)...>;
                         launch(
+                            device_id,
                             kernel,
                             grid_1d(N),
                             block_1d(),

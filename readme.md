@@ -15,6 +15,14 @@ so you will need to `reshape()` or `broadcast()` your Tensors to ensure the shap
 > I may experiment with various implementations later down the road to see how to optimize things,
 > but I expect in general the API should remain consistent.
 
+## Features
+- Can be built with an optional CUDA accelerated backend
+- Multi-device support (i.e. multi-gpu on the CUDA backend)
+- Efficient view and slice operations, similar to PyTorch, which creates views of the tensor on supported operations
+- Automatic differentiation on all the supported operations
+- Neural network intrinsics for building neural networks, loading data, and training
+- vcpkg support (see below)
+
 ## Documentation
 The documentation will not be complete as this is a personal project and not meant for serious use. 
 However, the API and design follows PyTorch so users familiar with that should be able to find their way.

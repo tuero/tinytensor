@@ -16,19 +16,25 @@
 
 namespace tinytensor {
 
-BackendBase *get_backend(Device device) {
-    switch (device.backend) {
-    case Backend::cpu:
+BackendBase *get_backend(Backend backend) {
+    switch (backend) {
+    case Backend::cpu: {
         static const std::unique_ptr<cpu::BackendCPU> backend_cpu = std::make_unique<cpu::BackendCPU>();
         return backend_cpu.get();
+    }
 #ifdef TT_CUDA
-    case Backend::cuda:
+    case Backend::cuda: {
         static const std::unique_ptr<cuda::BackendCUDA> backend_gpu = std::make_unique<cuda::BackendCUDA>();
         return backend_gpu.get();
+    }
 #endif
     default:
         TT_EXCEPTION("Unknown device type.");
     }
+}
+
+BackendBase *get_backend(Device device) {
+    return get_backend(device.backend);
 }
 
 }    // namespace tinytensor

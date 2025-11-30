@@ -310,6 +310,8 @@ public:
 
     [[nodiscard]] auto current_memory_allocated(int device_id) const -> uint64_t override;
     [[nodiscard]] auto total_memory_allocated(int device_id) const -> uint64_t override;
+
+    [[nodiscard]] auto get_device_count() const -> int override;
 };
 
 }    // namespace tinytensor::cpu

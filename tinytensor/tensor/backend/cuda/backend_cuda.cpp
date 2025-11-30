@@ -49,60 +49,89 @@ using namespace common::distribution;
 using namespace common::reduce;
 using namespace common::unary;
 
-auto BackendCUDA::from_vec(const std::vector<bool> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
+// NOLINTNEXTLINE(*-macro-usage)
+#define CHECK_DEVICE(device_id)                                                     \
+    const auto device_count = get_device_count();                                   \
+    if (device_id < 0 || device_id >= device_count) {                               \
+        TT_EXCEPTION(                                                               \
+            std::format(                                                            \
+                "Device id {:d} is out of range. Expected to be between [0, {:d}]", \
+                device_id,                                                          \
+                device_count - 1                                                    \
+            )                                                                       \
+        );                                                                          \
+    }
+
+auto BackendCUDA::from_vec(const std::vector<bool> &data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
     std::vector<uint8_t> _data(data.size());
     std::ranges::transform(data, _data.begin(), [&](bool value) { return static_cast<uint8_t>(value); });
     return from_vec(_data, device_id);
 }
-auto BackendCUDA::from_vec(const std::vector<kU8CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(data);
+auto BackendCUDA::from_vec(const std::vector<kU8CType> &data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, data);
 }
-auto BackendCUDA::from_vec(std::vector<kU8CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(std::move(data));
+auto BackendCUDA::from_vec(std::vector<kU8CType> &&data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, std::move(data));
 }
-auto BackendCUDA::from_vec(const std::vector<kI16CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(data);
+auto BackendCUDA::from_vec(const std::vector<kI16CType> &data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, data);
 }
-auto BackendCUDA::from_vec(std::vector<kI16CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(std::move(data));
+auto BackendCUDA::from_vec(std::vector<kI16CType> &&data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, std::move(data));
 }
-auto BackendCUDA::from_vec(const std::vector<kI32CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(data);
+auto BackendCUDA::from_vec(const std::vector<kI32CType> &data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, data);
 }
-auto BackendCUDA::from_vec(std::vector<kI32CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(std::move(data));
+auto BackendCUDA::from_vec(std::vector<kI32CType> &&data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, std::move(data));
 }
-auto BackendCUDA::from_vec(const std::vector<kI64CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(data);
+auto BackendCUDA::from_vec(const std::vector<kI64CType> &data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, data);
 }
-auto BackendCUDA::from_vec(std::vector<kI64CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(std::move(data));
+auto BackendCUDA::from_vec(std::vector<kI64CType> &&data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, std::move(data));
 }
-auto BackendCUDA::from_vec(const std::vector<kF32CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(data);
+auto BackendCUDA::from_vec(const std::vector<kF32CType> &data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, data);
 }
-auto BackendCUDA::from_vec(std::vector<kF32CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(std::move(data));
+auto BackendCUDA::from_vec(std::vector<kF32CType> &&data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, std::move(data));
 }
-auto BackendCUDA::from_vec(const std::vector<kF64CType> &data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(data);
+auto BackendCUDA::from_vec(const std::vector<kF64CType> &data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, data);
 }
-auto BackendCUDA::from_vec(std::vector<kF64CType> &&data, [[maybe_unused]] int device_id) const -> StoragePtr {
-    return std::make_unique<StorageCUDA>(std::move(data));
+auto BackendCUDA::from_vec(std::vector<kF64CType> &&data, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
+    return std::make_unique<StorageCUDA>(device_id, std::move(data));
 }
-auto BackendCUDA::from_scalar(const Scalar scalar, [[maybe_unused]] int device_id) const -> StoragePtr {
+auto BackendCUDA::from_scalar(const Scalar scalar, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
     return DISPATCH_ALL_TYPES(scalar.dtype(), "BackendCUDA::from_scalar", [&]() {
-        return std::make_unique<StorageCUDA>(1, scalar.to<scalar_t>());
+        return std::make_unique<StorageCUDA>(device_id, 1, scalar.to<scalar_t>());
     });
 }
-auto BackendCUDA::full(const Scalar &value, std::size_t N, [[maybe_unused]] int device_id) const -> StoragePtr {
+auto BackendCUDA::full(const Scalar &value, std::size_t N, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
     return DISPATCH_ALL_TYPES(value.dtype(), "BackendCUDA::full", [&]() {
-        return std::make_unique<StorageCUDA>(N, value.to<scalar_t>());
+        return std::make_unique<StorageCUDA>(device_id, N, value.to<scalar_t>());
     });
 }
-auto BackendCUDA::arange(std::size_t N, ScalarType dtype, [[maybe_unused]] int device_id) const -> StoragePtr {
+auto BackendCUDA::arange(std::size_t N, ScalarType dtype, int device_id) const -> StoragePtr {
+    CHECK_DEVICE(device_id);
     return DISPATCH_ALL_TYPES(dtype, "BackendCUDA::arange", [&]() {
-        return std::make_unique<StorageCUDA>(StorageCUDA::arange<scalar_t>(N));
+        return std::make_unique<StorageCUDA>(StorageCUDA::arange<scalar_t>(device_id, N));
     });
 }
 
@@ -852,11 +881,17 @@ auto BackendCUDA::avg_pool2d_backward(
     return batched_pool2d_backward_runner<ReduceOpT::mean>(grad_output, input, result, kernel_size, stride, padding);
 }
 
-auto BackendCUDA::current_memory_allocated([[maybe_unused]] int device_id) const -> uint64_t {
-    return StorageCUDA::current_bytes_allocated;
+auto BackendCUDA::current_memory_allocated(int device_id) const -> uint64_t {
+    CHECK_DEVICE(device_id);
+    return StorageCUDA::current_bytes_allocated[device_id];
 }
 auto BackendCUDA::total_memory_allocated([[maybe_unused]] int device_id) const -> uint64_t {
-    return StorageCUDA::total_bytes_allocated;
+    CHECK_DEVICE(device_id);
+    return StorageCUDA::total_bytes_allocated[device_id];
+}
+
+auto BackendCUDA::get_device_count() const -> int {
+    return cuda::get_device_count();
 }
 
 }    // namespace tinytensor::cuda

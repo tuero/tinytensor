@@ -26,8 +26,9 @@ template <UnaryOpT Op, typename... Params>
 auto unary_runner(const Tensor &tensor, Params... params) -> Tensor {
     // Create device memory for shape + stride for proper indexing
     const int N = tensor.numel();
-    const auto shape = MakeDeviceMemory(tensor.shape());
-    const auto stride = MakeDeviceMemory(tensor.stride());
+    const int device_id = tensor.device().id;
+    const auto shape = MakeDeviceMemory(device_id, tensor.shape());
+    const auto stride = MakeDeviceMemory(device_id, tensor.stride());
     return std::visit(
         [&](auto &&dev_memory) -> Tensor {
             using DT = std::remove_cvref_t<decltype(dev_memory)>;    // Storage type
@@ -39,10 +40,11 @@ auto unary_runner(const Tensor &tensor, Params... params) -> Tensor {
             const DataInfo<const T> tensor_info{dev_memory, shape, stride, tensor.offset()};
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<R>::AllocateElements(static_cast<std::size_t>(N));
+            auto res_dev_memory = DeviceMemory<R>::AllocateElements(device_id, static_cast<std::size_t>(N));
 
             const auto kernel = unary_kernel<CastBeforeOp, T, R, KernelOp, Params...>;
             launch(
+                device_id,
                 kernel,
                 grid_1d(N),
                 block_1d(),
@@ -67,8 +69,9 @@ template <UnaryOpT Op, typename... Params>
 void unary_runner_inplace(Tensor &tensor, Params... params) {
     // Create device memory for shape + stride for proper indexing
     const int N = tensor.numel();
-    const auto shape = MakeDeviceMemory(tensor.shape());
-    const auto stride = MakeDeviceMemory(tensor.stride());
+    const int device_id = tensor.device().id;
+    const auto shape = MakeDeviceMemory(device_id, tensor.shape());
+    const auto stride = MakeDeviceMemory(device_id, tensor.stride());
     std::visit(
         [&](auto &&dev_memory) {
             using DT = std::remove_cvref_t<decltype(dev_memory)>;    // Storage type
@@ -82,7 +85,16 @@ void unary_runner_inplace(Tensor &tensor, Params... params) {
                 const DataInfo<T> tensor_info{dev_memory, shape, stride, tensor.offset()};
 
                 const auto kernel = unary_kernel_inplace<T, KernelOp, Params...>;
-                launch(kernel, grid_1d(N), block_1d(), tensor_info, KernelOp{}, N, static_cast<T>(params)...);
+                launch(
+                    device_id,
+                    kernel,
+                    grid_1d(N),
+                    block_1d(),
+                    tensor_info,
+                    KernelOp{},
+                    N,
+                    static_cast<T>(params)...
+                );
             }
         },
         tensor.get_storage<StorageCUDA>().dev_memory

@@ -31,6 +31,7 @@ auto batched_matmul_runner(const Tensor &lhs, const Tensor &rhs) -> Tensor {
     const int N = lhs.size(1);
     const int K = lhs.size(2);
     const int M = rhs.size(2);
+    const int device_id = lhs.device().id;
 
     const auto res_shape = Shape({B, N, M});
     const auto res_device = lhs.device();
@@ -46,7 +47,7 @@ auto batched_matmul_runner(const Tensor &lhs, const Tensor &rhs) -> Tensor {
             using T = template_parameter_t<DT>;                             // Underlying type
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(B * N * M));
+            auto res_dev_memory = DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(B * N * M));
 
             // Get operand data spans
             // Data can have an offset whilst still being contiguous
@@ -68,7 +69,7 @@ auto batched_matmul_runner(const Tensor &lhs, const Tensor &rhs) -> Tensor {
             };
 
             // Call kernel
-            launch(matmul_kernel<T>, grid_dim, block_dim, lhs_span, rhs_span, res_span, N, K, M);
+            launch(device_id, matmul_kernel<T>, grid_dim, block_dim, lhs_span, rhs_span, res_span, N, K, M);
 
             return {std::make_unique<StorageCUDA>(std::move(res_dev_memory)), lhs.dtype(), res_shape, res_device};
         },

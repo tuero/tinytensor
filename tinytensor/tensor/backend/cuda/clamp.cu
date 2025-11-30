@@ -23,14 +23,15 @@ using namespace kernel::clamp;
 void clamp_inplace_runner(Tensor &tensor, const Tensor &min, const Tensor &max) {
     assert(tensor.device() == min.device() && tensor.device() == max.device());
     const int N = tensor.numel();
+    const int device_id = tensor.device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto tensor_shape = MakeDeviceMemory(tensor.shape());
-    const auto tensor_stride = MakeDeviceMemory(tensor.stride());
-    const auto min_shape = MakeDeviceMemory(min.shape());
-    const auto min_stride = MakeDeviceMemory(min.stride());
-    const auto max_shape = MakeDeviceMemory(max.shape());
-    const auto max_stride = MakeDeviceMemory(max.stride());
+    const auto tensor_shape = MakeDeviceMemory(device_id, tensor.shape());
+    const auto tensor_stride = MakeDeviceMemory(device_id, tensor.stride());
+    const auto min_shape = MakeDeviceMemory(device_id, min.shape());
+    const auto min_stride = MakeDeviceMemory(device_id, min.stride());
+    const auto max_shape = MakeDeviceMemory(device_id, max.shape());
+    const auto max_stride = MakeDeviceMemory(device_id, max.stride());
 
     // lhs and rhs need to be same type, so visit on one to reduce codegen
     return std::visit(
@@ -49,7 +50,7 @@ void clamp_inplace_runner(Tensor &tensor, const Tensor &min, const Tensor &max) 
             const DataInfo<const T> _max{max_span, max_shape, max_stride, max.offset()};
 
             const auto kernel = clamp_kernel<T>;
-            launch(kernel, grid_1d(N), block_1d(), a, _min, _max, N);
+            launch(device_id, kernel, grid_1d(N), block_1d(), a, _min, _max, N);
         },
         tensor.template get_storage<StorageCUDA>().dev_memory
     );

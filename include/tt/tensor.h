@@ -3565,6 +3565,14 @@ template <IsScalarType T>
 [[nodiscard]] TINYTENSOR_EXPORT auto total_memory_allocated(const Device &device) -> uint64_t;
 
 /**
+ * Get the number of devices supported for the given backend
+ * @note Its expected the device ids are between 0 and one less than the device count
+ * @param backend The backend to query
+ * @return The number of devices
+ */
+[[nodiscard]] TINYTENSOR_EXPORT auto get_device_count(Backend backend) -> int;
+
+/**
  * Create a dot graphviz of the ops and tensors for the computation graph up to
  * and including this tensor
  * @tensor The Tensor to build the computation graph from

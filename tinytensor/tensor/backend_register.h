@@ -10,6 +10,7 @@
 
 namespace tinytensor {
 
+auto get_backend(Backend backend) -> BackendBase *;
 auto get_backend(Device device) -> BackendBase *;
 
 }    // namespace tinytensor

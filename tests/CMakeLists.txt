@@ -65,3 +65,5 @@ CREATE_TEST(test_batchnorm)
 CREATE_TEST(test_layernorm)
 CREATE_TEST(test_instancenorm)
 
+# Multi device tests
+CREATE_TEST(test_multi_device_cuda)

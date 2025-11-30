@@ -28,14 +28,15 @@ auto where_runner(const Tensor &cond, const Tensor &lhs, const Tensor &rhs) -> T
     const auto res_shape = lhs.shape();
     const auto res_device = lhs.device();
     const int N = lhs.numel();
+    const int device_id = lhs.device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto cond_shape = MakeDeviceMemory(cond.shape());
-    const auto cond_stride = MakeDeviceMemory(cond.stride());
-    const auto lhs_shape = MakeDeviceMemory(lhs.shape());
-    const auto lhs_stride = MakeDeviceMemory(lhs.stride());
-    const auto rhs_shape = MakeDeviceMemory(rhs.shape());
-    const auto rhs_stride = MakeDeviceMemory(rhs.stride());
+    const auto cond_shape = MakeDeviceMemory(device_id, cond.shape());
+    const auto cond_stride = MakeDeviceMemory(device_id, cond.stride());
+    const auto lhs_shape = MakeDeviceMemory(device_id, lhs.shape());
+    const auto lhs_stride = MakeDeviceMemory(device_id, lhs.stride());
+    const auto rhs_shape = MakeDeviceMemory(device_id, rhs.shape());
+    const auto rhs_stride = MakeDeviceMemory(device_id, rhs.stride());
 
     // lhs and rhs need to be same type, so visit on one to reduce codegen
     return std::visit(
@@ -46,7 +47,7 @@ auto where_runner(const Tensor &cond, const Tensor &lhs, const Tensor &rhs) -> T
             using DU = DeviceMemory<U>;
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(N));
+            auto res_dev_memory = DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(N));
 
             // Get operand data spans
             const DeviceSpan<const T> lhs_span{tensor_dev_memory};
@@ -59,7 +60,7 @@ auto where_runner(const Tensor &cond, const Tensor &lhs, const Tensor &rhs) -> T
             const DataInfo<const U> c{cond_span, cond_shape, cond_stride, cond.offset()};
 
             const auto kernel = where_kernel<T>;
-            launch(kernel, grid_1d(N), block_1d(), DeviceSpan<T>{res_dev_memory}, N, c, l, r);
+            launch(device_id, kernel, grid_1d(N), block_1d(), DeviceSpan<T>{res_dev_memory}, N, c, l, r);
             return {std::make_unique<StorageCUDA>(std::move(res_dev_memory)), lhs.dtype(), res_shape, res_device};
         },
         lhs.template get_storage<StorageCUDA>().dev_memory
@@ -72,13 +73,14 @@ auto gather_runner(const Tensor &input, const Tensor &indices, int dim) -> Tenso
     res_shape[dim] = 1;
     const auto res_device = input.device();
     const int N = res_shape.numel();
+    const int device_id = input.device().id;
 
     // Create device memory for shape + stride for proper indexing
-    const auto input_shape = MakeDeviceMemory(input.shape());
-    const auto input_stride = MakeDeviceMemory(input.stride());
-    const auto idx_shape = MakeDeviceMemory(indices.shape());
-    const auto idx_stride = MakeDeviceMemory(indices.stride());
-    const auto res_dev_shape = MakeDeviceMemory(res_shape);
+    const auto input_shape = MakeDeviceMemory(device_id, input.shape());
+    const auto input_stride = MakeDeviceMemory(device_id, input.stride());
+    const auto idx_shape = MakeDeviceMemory(device_id, indices.shape());
+    const auto idx_stride = MakeDeviceMemory(device_id, indices.stride());
+    const auto res_dev_shape = MakeDeviceMemory(device_id, res_shape);
 
     // lhs and rhs need to be same type, so visit on one to reduce codegen
     return std::visit(
@@ -89,7 +91,7 @@ auto gather_runner(const Tensor &input, const Tensor &indices, int dim) -> Tenso
             using DU = DeviceMemory<U>;
 
             // Allocate for result
-            auto res_dev_memory = DeviceMemory<T>::AllocateElements(static_cast<std::size_t>(N));
+            auto res_dev_memory = DeviceMemory<T>::AllocateElements(device_id, static_cast<std::size_t>(N));
 
             // Get operand data spans
             const DeviceSpan<const T> input_span{tensor_dev_memory};
@@ -102,6 +104,7 @@ auto gather_runner(const Tensor &input, const Tensor &indices, int dim) -> Tenso
 
             const auto kernel = gather_kernel<T>;
             launch(
+                device_id,
                 kernel,
                 grid_1d(N),
                 block_1d(),

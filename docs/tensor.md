@@ -6,11 +6,35 @@ Tensors have the following properties:
 - A flag for whether gradients should be saved for that particular tensor
 
 ## Device
-Devices are one-to-one with backends. 
+Devices are a struct which contains a `backend` type and an `id`. 
+Some backends ignore the device `id` (like `Backend::cpu`),
+but are used in multi-device backends like `Backend::cuda`.
 By default, `kCPU` is the device used which is a basic non-accelerated CPU backend implementation.
 If building with CUDA support, the device `kCUDA` will be available,
 which can be checked by `#ifdef TT_CUDA`.
-As of now, there is support for only a single CUDA device (and the default one is used).
+
+The `cuda` backend supports multi-gpu. 
+Like PyTorch, tensors can only perform operations against other tensors if on the 
+same device, which includes both the `backend` and `id`,
+so you will need to manually move tensors from one device to another.
+```cpp
+const Device cuda_device0{.backend = Backend::cuda, .id = 0};
+const Device cuda_device1{.backend = Backend::cuda, .id = 1};
+Tensor t1 = ones({4, 4}, TensorOptions().device(cuda_device0));
+Tensor t2 = ones({4, 4}, TensorOptions().device(cuda_device1));
+
+// Throws an exception because t1 and t2 are not on the same device 
+//   (i.e. they are on separate GPUs)
+// In function:
+//         tinytensor::Tensor tinytensor::add(const Tensor&, const Tensor&)
+// 
+// TinyTensor Error: Expected inputs to be on same device, given devices cuda:0, cuda:1
+Tensor result_throws = t1 + t2;
+
+// Need to manually move so they are on the same GPU
+Tensor t3 = t1.to(cuda_device1);
+Tensor result = t3 + t2;
+```
 
 ## ScalarType
 The following scalar types are defined in [scalar.h](../include/tt/scalar.h)

@@ -858,4 +858,8 @@ auto BackendCPU::total_memory_allocated([[maybe_unused]] int device_id) const ->
     return StorageCPU::total_bytes_allocated;
 }
 
+auto BackendCPU::get_device_count() const -> int {
+    return 0;
+}
+
 }    // namespace tinytensor::cpu
