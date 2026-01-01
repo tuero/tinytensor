@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
+#include <span>
 
 namespace tinytensor::cpu::kernel::matmul {
 
@@ -182,12 +183,16 @@ void matmul_kernel(const HostSpan<const T> A, const HostSpan<const T> B, HostSpa
     for (int i = 0; i < N; ++i) {
         const auto idx_pA = i * PAD_KW;
         const auto idx_A = i * K;
-        memcpy(&pA[idx_pA], &A[idx_A], sizeof(T) * static_cast<std::size_t>(K));
+        std::span<const T> src{&A[idx_A], static_cast<std::size_t>(K)};
+        std::span<T> dst{&pA[idx_pA], static_cast<std::size_t>(K)};
+        std::copy(src.begin(), src.end(), dst.begin());
     }
     for (int i = 0; i < K; ++i) {
         const auto idx_pB = i * PAD_MW;
         const auto idx_B = i * M;
-        memcpy(&pB[idx_pB], &B[idx_B], sizeof(T) * static_cast<std::size_t>(M));
+        std::span<const T> src{&B[idx_B], static_cast<std::size_t>(M)};
+        std::span<T> dst{&pB[idx_pB], static_cast<std::size_t>(M)};
+        std::copy(src.begin(), src.end(), dst.begin());
     }
 
     for (int tile_col = 0; tile_col < PAD_MW; tile_col += TILE_STRIDE) {
@@ -213,7 +218,9 @@ void matmul_kernel(const HostSpan<const T> A, const HostSpan<const T> B, HostSpa
     for (int i = 0; i < N; ++i) {
         const auto idx_pC = i * PAD_MW;
         const auto idx_C = i * M;
-        memcpy(&C[idx_C], &pC[idx_pC], sizeof(T) * static_cast<std::size_t>(M));
+        std::span<T> src{&pC[idx_pC], static_cast<std::size_t>(M)};
+        std::span<T> dst{&C[idx_C], static_cast<std::size_t>(M)};
+        std::copy(src.begin(), src.end(), dst.begin());
     }
 }
 

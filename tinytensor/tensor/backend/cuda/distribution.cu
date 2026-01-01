@@ -77,7 +77,7 @@ auto _dist_runner(Generator &gen, const Params &...params) -> Tensor {
                 // Call kernel
                 std::apply(
                     [&](auto &&...args) {
-                        const auto kernel = variadic_param_kernel<T, KernelOp, decltype(args)...>;
+                        const auto kernel = variadic_param_kernel<T, KernelOp, std::remove_cvref_t<decltype(args)>...>;
                         launch(
                             device_id,
                             kernel,
@@ -155,7 +155,7 @@ void _dist_inplace_runner(Tensor &tensor, Generator &gen, const Params &...param
                 // Call kernel
                 std::apply(
                     [&](auto &&...args) {
-                        const auto kernel = variadic_param_kernel<T, KernelOp, decltype(args)...>;
+                        const auto kernel = variadic_param_kernel<T, KernelOp, std::remove_cvref_t<decltype(args)>...>;
                         launch(
                             device_id,
                             kernel,
