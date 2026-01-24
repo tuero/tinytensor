@@ -192,7 +192,7 @@ public:
     }
 
     /**
-     * Get and cast the underyling stored value to the given type
+     * Get and cast the underlying stored value to the given type
      */
     template <typename T>
         requires(IsScalarType<T> || std::is_same_v<T, bool>)
@@ -201,7 +201,7 @@ public:
     }
 
     /**
-     * Get and cast the underyling stored value to the given type
+     * Get and cast the underlying stored value to the given type
      * @param dtype The scalar type for the result
      */
     [[nodiscard]] auto to(ScalarType dtype) const -> Scalar {

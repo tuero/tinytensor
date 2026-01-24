@@ -19,7 +19,7 @@
 
 namespace tinytensor::cuda {
 
-// CUDA storage is a wrapper around DeviceMemroy
+// CUDA storage is a wrapper around DeviceMemory
 class StorageCUDA : public StorageBase {
     using kBoolCType = to_ctype_t<kBool>;
     using kI16CType = to_ctype_t<kI16>;

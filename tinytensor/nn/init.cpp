@@ -30,11 +30,14 @@ void normal_no_grad(Tensor tensor, double mu, double std) {
 auto calc_fan_in_out(const Tensor &tensor) -> std::tuple<double, double> {
     auto dimensions = tensor.dim();
     if (dimensions < 2) {
-        TT_EXCEPTION(std::format(
-            "Unable to calculcate fan in and fan out for tensors with dimensions fewer than 2. Given tensor with {:d} "
-            "dimensions",
-            dimensions
-        ));
+        TT_EXCEPTION(
+            std::format(
+                "Unable to calculate fan in and fan out for tensors with dimensions fewer than 2. Given tensor with "
+                "{:d} "
+                "dimensions",
+                dimensions
+            )
+        );
     }
     auto input_features = tensor.size(0);
     auto output_features = tensor.size(0);
@@ -99,7 +102,7 @@ void xavier_normal_(Tensor tensor, double gain) {
     normal_no_grad(tensor, 0, std);
 }
 
-// U(-bound, boun) where bound = sqrt(3) * (gain / sqrt(fan_mode))
+// U(-bound, bound) where bound = sqrt(3) * (gain / sqrt(fan_mode))
 void kaiming_uniform_(Tensor tensor, double gain, FanMode fan_mode) {
     const auto [fan_in, fan_out] = calc_fan_in_out(tensor);
     auto fan = fan_mode == FanMode::fan_in ? fan_in : fan_out;
@@ -108,7 +111,7 @@ void kaiming_uniform_(Tensor tensor, double gain, FanMode fan_mode) {
     uniform_real_no_grad(tensor, -bound, bound);
 }
 
-// N(-bound, boun) where std = gain / sqrt(fan_mode)
+// N(-bound, bound) where std = gain / sqrt(fan_mode)
 void kaiming_normal_(Tensor tensor, double gain, FanMode fan_mode) {
     const auto [fan_in, fan_out] = calc_fan_in_out(tensor);
     auto fan = fan_mode == FanMode::fan_in ? fan_in : fan_out;

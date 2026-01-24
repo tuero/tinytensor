@@ -8,7 +8,7 @@ see this nice [blog post](https://blog.ezyang.com/2019/05/pytorch-internals/).
 Tensors have an underlying storage pointer, with a shape, stride, and offset.
 This allows for cheap operations like reshapes, indexing, etc. 
 where the underlying data pointer remains the same,
-while the shape/stride/offsets are modifyed. 
+while the shape/stride/offsets are modified. 
 This also means that making inplace modifications to views of a tensor will also have those 
 modifications reflected in the original tensor.
 
@@ -32,8 +32,8 @@ These are defined in [tensor.h](../include/tt/tensor.h)
 - [Misc](../include/tt/tensor.h?plain=1#L3111): `where`, `isclose`, `allclose`, `clamp`
 
 ## Indexing
-Tenors support indexing.
-- Indexing with an integer will select the row for the given dimenson
+Tensors support indexing.
+- Indexing with an integer will select the row for the given dimension
 - Indexing with a `indexing::Slice` will select a slice from start-stop-step of the given dimension
 - These can be combined with a list
 
@@ -48,7 +48,7 @@ Tensor t3 = x[{Slice(), 1}];        // t has shape [4, 5], similar to pytorch x[
 ## Inplace Operations
 Most operations support inplace versions, with a `_` suffix.
 For example, `tensor.exp_()` will apply `exp` inplace. 
-In general, inplace operations are not supported on tensors which require graidents to be computed. 
+In general, inplace operations are not supported on tensors which require gradients to be computed. 
 
 
 ## Util

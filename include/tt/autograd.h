@@ -43,7 +43,7 @@ struct TINYTENSOR_EXPORT IterateApply {
     }
 
 private:
-    // Cast to dervied CRTP type to call its overloaded operator()'s
+    // Cast to derived CRTP type to call its overloaded operator()'s
     inline T &self() {
         return *static_cast<T *>(this);
     }
@@ -115,10 +115,10 @@ TINYTENSOR_EXPORT inline auto make_versioned_tensor_list(const TensorList &tenso
     return list;
 }
 
-// Generic storage mapping for autograd aware functions, used to retrive items for backward pass
+// Generic storage mapping for autograd aware functions, used to retrieve items for backward pass
 using AutogradStorage = std::unordered_map<std::string, StorageItem>;
 
-// Backward pass function for gradient computation, takes storage and incomming gradient
+// Backward pass function for gradient computation, takes storage and incoming gradient
 // using GradList = std::vector<std::optional<Tensor>>;
 using GradList = CheckedVec<std::optional<Tensor>>;
 using GradFunc = std::function<GradList(AutogradStorage &storage, const Tensor &grad_output)>;

@@ -62,12 +62,12 @@ namespace tinytensor {
 namespace {
 
 // NOLINTNEXTLINE(*-macro-usage)
-#define CHECK_VALID_TENSOR(t)                         \
-    if (!(t).has_storage()) {                         \
-        TT_EXCEPTION("Detected unitialized Tensor."); \
+#define CHECK_VALID_TENSOR(t)                           \
+    if (!(t).has_storage()) {                           \
+        TT_EXCEPTION("Detected uninitialized Tensor."); \
     }
 
-// Check and convert inclusing indexing with negative indexing
+// Check and convert inclusive indexing with negative indexing
 // NOLINTNEXTLINE(*-macro-usage)
 #define CHECK_VALID_INDEX_INCLUSIVE(dim, N)                                                   \
     if (dim > N || dim < -N - 1) {                                                            \

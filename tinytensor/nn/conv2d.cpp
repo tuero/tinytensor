@@ -65,7 +65,7 @@ Conv2d::Conv2d(
 }
 
 auto Conv2d::forward(const Tensor &input) const -> Tensor {
-    // Redundant check but pretty error msg specific for this rathern then throwing inside conv2d
+    // Redundant check but pretty error msg specific for this rather then throwing inside conv2d
     if (input.dim() == 4 && input.size(1) != weight->size(1)) {
         TT_EXCEPTION(
             std::format("Input channels {:d} does not match layer input channels {:d}", input.size(1), weight->size(1))

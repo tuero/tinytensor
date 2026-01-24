@@ -137,7 +137,7 @@ inline void tile_kernel(
             }
         }
     }
-    // Update C's block with the parital results
+    // Update C's block with the partial results
     for (int i = 0; i < KERNEL_HEIGHT; ++i) {
         for (int j = 0; j < KERNEL_WIDTH_VEC; ++j) {
             const auto idx = ((start_row + i) * M + start_col) + (j * vec_width);

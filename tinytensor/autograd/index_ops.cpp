@@ -146,7 +146,7 @@ auto TensorIndexIndices::backward(const AutogradStorage &storage, const Tensor &
 }
 
 // IndexPutMask forward and backward
-// Mask will set from given values, so we propogate gradients back through the inverse mask
+// Mask will set from given values, so we propagate gradients back through the inverse mask
 auto TensorIndexPutMask::forward(
     AutogradStorage &storage,
     bool is_grad_required,
@@ -170,7 +170,7 @@ auto TensorIndexPutMask::backward(const AutogradStorage &storage, const Tensor &
 }
 
 // IndexPutIndices forward and backward
-// Create mask from indices, invert and propogate gradients back through inverse mask
+// Create mask from indices, invert and propagate gradients back through inverse mask
 auto TensorIndexPutIndices::forward(
     AutogradStorage &storage,
     bool is_grad_required,
@@ -218,7 +218,7 @@ auto TensorIndexSelect::forward(
     std::vector<to_ctype_t<kDefaultInt>> selected_indices;
     Tensor all_indices = arange(tensor.shape(), kDefaultInt, kCPU);
     std::vector<indexing::Index> slices(static_cast<std::size_t>(N), indexing::Slice());
-    // For each index along the dimenson, set that slice to true so we can perform a single index_mask to grab all
+    // For each index along the dimension, set that slice to true so we can perform a single index_mask to grab all
     for (const auto &idx : indices) {
         slices[static_cast<std::size_t>(dim)] = idx;
         for (const auto &i : all_indices[slices].to_vec<to_ctype_t<kDefaultInt>>()) {
@@ -227,7 +227,7 @@ auto TensorIndexSelect::forward(
         slices[static_cast<std::size_t>(dim)] = indexing::Slice();
     }
 
-    // Shape after indexing is [0-dim] subshape rotated right with outer-most dim being how many indicies given as input
+    // Shape after indexing is [0-dim] subshape rotated right with outer-most dim being how many indices given as input
     Shape result_shape = tensor.shape();
     for (int i = dim; i > 0; --i) {
         result_shape[i] = result_shape[i - 1];

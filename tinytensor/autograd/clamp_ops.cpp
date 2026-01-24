@@ -17,18 +17,21 @@
 namespace tinytensor::autograd {
 
 // NOLINTNEXTLINE(*-macro-usage)
-#define CHECK_VERSION(tensor, version)                                                                               \
-    if (tensor.version_count() != version) {                                                                         \
-        TT_EXCEPTION(std::format(                                                                                    \
-            "Inplace operation on tensor required for autograd detected. Tensor with version {:d} saved in forward " \
-            "pass, but has version {:d} in backward pass",                                                           \
-            version,                                                                                                 \
-            tensor.version_count()                                                                                   \
-        ));                                                                                                          \
+#define CHECK_VERSION(tensor, version)                                                                           \
+    if (tensor.version_count() != version) {                                                                     \
+        TT_EXCEPTION(                                                                                            \
+            std::format(                                                                                         \
+                "Inplace operation on tensor required for autograd detected. Tensor with version {:d} saved in " \
+                "forward "                                                                                       \
+                "pass, but has version {:d} in backward pass",                                                   \
+                version,                                                                                         \
+                tensor.version_count()                                                                           \
+            )                                                                                                    \
+        );                                                                                                       \
     }
 
 // Clamp reduce forward and backward
-// Gradient flows back if within min/max, zerod if outside
+// Gradient flows back if within min/max, zeroed if outside
 auto TensorClamp::forward(
     AutogradStorage &storage,
     bool is_grad_required,

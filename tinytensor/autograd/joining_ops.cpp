@@ -19,18 +19,21 @@
 namespace tinytensor::autograd {
 
 // NOLINTNEXTLINE(*-macro-usage)
-#define CHECK_VERSION(tensor, version)                                                                               \
-    if (tensor.version_count() != version) {                                                                         \
-        TT_EXCEPTION(std::format(                                                                                    \
-            "Inplace operation on tensor required for autograd detected. Tensor with version {:d} saved in forward " \
-            "pass, but has version {:d} in backward pass",                                                           \
-            version,                                                                                                 \
-            tensor.version_count()                                                                                   \
-        ));                                                                                                          \
+#define CHECK_VERSION(tensor, version)                                                                           \
+    if (tensor.version_count() != version) {                                                                     \
+        TT_EXCEPTION(                                                                                            \
+            std::format(                                                                                         \
+                "Inplace operation on tensor required for autograd detected. Tensor with version {:d} saved in " \
+                "forward "                                                                                       \
+                "pass, but has version {:d} in backward pass",                                                   \
+                version,                                                                                         \
+                tensor.version_count()                                                                           \
+            )                                                                                                    \
+        );                                                                                                       \
     }
 
 // Concat/stack forward and backward
-// Gradient of slice corresponding to input propogates to it
+// Gradient of slice corresponding to input propagates to it
 auto TensorCat::forward(
     [[maybe_unused]] AutogradStorage &storage,
     [[maybe_unused]] bool is_grad_required,

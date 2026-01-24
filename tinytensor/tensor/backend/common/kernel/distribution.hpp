@@ -208,7 +208,7 @@ struct OpPoisson {
 
 /**
  * Generate a sample from an Exponential distribution
- * @param lambda The rate of occurances
+ * @param lambda The rate of occurrences
  * @note Uses method from
  * https://en.wikipedia.org/wiki/Exponential_distribution#Random_variate_generation
  */
@@ -280,7 +280,7 @@ struct OpLogNormal {
 
 /**
  * Generate a sample from a Weibull distribution
- * @param scale Scale parameter lamda
+ * @param scale Scale parameter lambda
  * @param shape Shape parameter k
  * @note https://en.wikipedia.org/wiki/Weibull_distribution#Related_distributions
  */

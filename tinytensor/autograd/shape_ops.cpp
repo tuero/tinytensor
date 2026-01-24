@@ -68,7 +68,7 @@ auto TensorBroadcast::backward(const AutogradStorage &storage, const Tensor &gra
     // Find reduction dims
     std::vector<int> reduce_dims;
     int leading_dims = shape_grad.size() - shape_input.size();
-    // New dims which were preprended
+    // New dims which were prepended
     for (int i = 0; i < leading_dims; ++i) {
         reduce_dims.push_back(i);
     }

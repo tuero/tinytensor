@@ -121,7 +121,7 @@ public:
         if (p) {
             return *p;
         }
-        TT_EXCEPTION("Cannot cast underlying moduel to given type");
+        TT_EXCEPTION("Cannot cast underlying module to given type");
     }
 
     /**

@@ -1,23 +1,23 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(tinytensor VERSION 1.0.0 LANGUAGES CXX)
+project(tinytensor VERSION 1.0.4 LANGUAGES CXX)
 
 # Build options
 option(TT_BUILD_CUDA "Build tinytensor with cuda backend support" OFF)
-option(TT_BULD_TESTS "Build tinytensor tests" OFF)
-option(TT_BULD_EXAMPLES "Build tinytensor examples" OFF)
+option(TT_BUILD_TESTS "Build tinytensor tests" OFF)
+option(TT_BUILD_EXAMPLES "Build tinytensor examples" OFF)
 
 # Hide symbols by default
-if (NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET AND
+if(NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET AND
     NOT DEFINED CMAKE_VISIBILITY_INLINES_HIDDEN)
   set(CMAKE_CXX_VISIBILITY_PRESET hidden)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
-endif ()
+endif()
 
 # Let tinytensor_SHARED_LIBS override BUILD_SHARED_LIBS
-if (DEFINED tinytensor_SHARED_LIBS)
+if(DEFINED tinytensor_SHARED_LIBS)
     set(BUILD_SHARED_LIBS "${tinytensor_SHARED_LIBS}")
-endif ()
+endif()
 
 # Library and properties
 add_library(tinytensor)

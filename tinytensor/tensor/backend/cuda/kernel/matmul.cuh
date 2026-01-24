@@ -44,7 +44,7 @@ __global__ void
     const auto c_row = blockIdx.y * TILE_HEIGHT;
     const auto c_col = blockIdx.x * TILE_WIDTH;
 
-    // Set A, B, and C to point to the block tile we are curently tiled over
+    // Set A, B, and C to point to the block tile we are currently tiled over
     // A starts at C's row, column 0 (which will be summed over)
     // B starts at C's column at row 0 (which will be summed over)
     // C starts at its row and column previously calculated

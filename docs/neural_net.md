@@ -50,7 +50,7 @@ n2.to(device);
 n2.load("model.pt");
 ```
 
-## Training Using Optimziers
+## Training Using Optimizers
 Optimizers take the models parameters, and will control zeroing the model parameter gradients and updating them 
 after the gradients have been set through a backward pass of the computation graph.
 
@@ -76,7 +76,7 @@ optimizer.step();                   // Apply the optimizer update rule using the
 ## Neural Network Computation Modes
 Some neural modules behave differently depending if they are training or evaluation mode,
 such as `Dropout`.
-These can be controled by calling `.train()` or `.eval()`
+These can be controlled by calling `.train()` or `.eval()`
 ```cpp
 Net net;
 net.train();
@@ -88,7 +88,7 @@ net.eval();
 By default, all computations on `Modules` have gradients tracked,
 which consumes memory until the gradients are cleared and dealt with.
 When gradients are not required, such as during validation and testing,
-you can disable the gradients by using a scoped graident guard.
+you can disable the gradients by using a scoped gradient guard.
 
 ```cpp
 // Everything before here has gradients being tracked

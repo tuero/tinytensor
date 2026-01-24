@@ -39,7 +39,7 @@ __global__ void reduce_dim_kernel(const DataInfo<const T> v, DeviceSpan<R> res, 
 // With decreasing stride, fold the right half into the left half
 // Once a single warp of elements remain, use a wrap reduction
 // Half the threads are idle on first iteration (the right half elements),
-// so we perform the first reduction using half the number of threads, keeping all threads acitive
+// so we perform the first reduction using half the number of threads, keeping all threads active
 // initially
 constexpr unsigned int MASK = 0xffffffff;
 template <typename T, typename R, typename OP>
@@ -85,7 +85,7 @@ __global__ void reduce_all_kernel(const DataInfo<const T> v, DeviceSpan<R> res, 
     }
 
     // Warp reduction
-    // Since CUDA9, its no longer guranteed that threads in warp are lockstep, need to sync
+    // Since CUDA9, its no longer guaranteed that threads in warp are lockstep, need to sync
     // NOLINTBEGIN
     const VIT val_idx1{partial_reduction_val[tid], partial_reduction_idx[tid]};
     const VIT val_idx2{partial_reduction_val[tid + WARP_SIZE], partial_reduction_idx[tid + WARP_SIZE]};

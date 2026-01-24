@@ -133,7 +133,7 @@ The following configurations have been tested:
 - macOS 15.2: `g++` 14.2.0, `clang++` 19.1.6
 
 Both static and shared library builds are offered, 
-which can be controlled throught the CMake cache variable `-DBUILD_SHARED_LIBS=ON`
+which can be controlled through the CMake cache variable `-DBUILD_SHARED_LIBS=ON`
 
 > [!IMPORTANT]
 > To build with CUDA support, you must set the cmake flag `TT_BUILD_CUDA`:

@@ -20,7 +20,7 @@ public:
     using DataType = std::tuple<Tensor, Tensor>;
 
     /**
-     * Create a IsDataset compiant wrapper for MNIST
+     * Create a IsDataset compliant wrapper for MNIST
      * @param img_path The full path to the *-images-idx3-ubyte file
      * @param label_path The full path to the *-labels-idx1-ubyte file
      * @param normalize True to normalize the data, false to leave rescaled to [0, 1]

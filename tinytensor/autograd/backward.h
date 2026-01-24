@@ -1,8 +1,8 @@
 // backward.h
 // Backward pass functionality
 
-#ifndef TINYTENSOR_AUTOGRAD_BACKARD_H_
-#define TINYTENSOR_AUTOGRAD_BACKARD_H_
+#ifndef TINYTENSOR_AUTOGRAD_BACKWARD_H_
+#define TINYTENSOR_AUTOGRAD_BACKWARD_H_
 
 #include <tt/tensor.h>
 
@@ -12,4 +12,4 @@ void backward(Tensor &tensor, const Tensor &grad, bool retain_graph);
 
 }    // namespace tinytensor::autograd
 
-#endif    // TINYTENSOR_AUTOGRAD_BACKARD_H_
+#endif    // TINYTENSOR_AUTOGRAD_BACKWARD_H_

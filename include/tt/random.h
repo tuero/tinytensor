@@ -53,7 +53,7 @@ TINYTENSOR_EXPORT void set_default_generator_seed(uint64_t seed);
 
 /**
  * Get the default generator.
- * For reproducibility, its recomended to not rely on this and create your own Generator
+ * For reproducibility, its recommended to not rely on this and create your own Generator
  */
 TINYTENSOR_EXPORT auto get_default_generator() -> Generator &;
 

@@ -21,7 +21,7 @@ namespace tinytensor::autograd {
 void calc_grad_input(Tensor &tensor, bool retain_graph) {
     if (tensor.ctx_->grad_func) {
         if (!tensor.ctx_->grad) {
-            TT_ERROR("Gradient was not propogated to this tensor");
+            TT_ERROR("Gradient was not propagated to this tensor");
         }
         GradList grad_inputs = tensor.ctx_->grad_func(tensor.ctx_->storage, *tensor.ctx_->grad);
         if (grad_inputs.size() > tensor.ctx_->parents.size()) {
@@ -31,7 +31,7 @@ void calc_grad_input(Tensor &tensor, bool retain_graph) {
                     std::format(
                         "Backward function {:s} returned {:d} gradients but has no saved parents.\n\tIf you are "
                         "wanting to "
-                        "perform .backward() twice, try keeping the computation graph by using .backard(true)",
+                        "perform .backward() twice, try keeping the computation graph by using .backward(true)",
                         tensor.ctx_->grad_func_name,
                         grad_inputs.size(),
                         tensor.ctx_->parents.size()

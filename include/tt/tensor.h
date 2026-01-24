@@ -209,7 +209,7 @@ public:
     ~Tensor() = default;
 
     /**
-     * Searialize the current tensor into the given stream
+     * Serialize the current tensor into the given stream
      */
     auto serialize() const -> std::vector<char>;
 
@@ -554,7 +554,7 @@ public:
     /**
      * Perform backward pass computing gradients starting from this Tensor
      * @param grad The gradient of the function with respect to the current
-     * Tensor. If ommitted, it will default to ones_like(self)
+     * Tensor. If omitted, it will default to ones_like(self)
      * @param retain_graph If false, will free the underlying computation graph
      * after performing backward pass
      */
@@ -1437,7 +1437,7 @@ public:
      * Compute the variance of the input
      * @param keep_dim Whether the result has the reduction dimension retained or
      * not
-     * @param correction Difference between sample size and sampel degrees of
+     * @param correction Difference between sample size and sample degrees of
      * freedom
      * @return the resulting Tensor
      */
@@ -1448,7 +1448,7 @@ public:
      * @param dim The dimension to reduce over
      * @param keep_dim Whether the result has the reduction dimension retained or
      * not
-     * @param correction Difference between sample size and sampel degrees of
+     * @param correction Difference between sample size and sample degrees of
      * freedom
      * @return the resulting Tensor
      */
@@ -1459,7 +1459,7 @@ public:
      * @param dims The dimensions to reduce over
      * @param keep_dim Whether the result has the reduction dimension retained or
      * not
-     * @param correction Difference between sample size and sampel degrees of
+     * @param correction Difference between sample size and sample degrees of
      * freedom
      * @return the resulting Tensor
      */
@@ -2861,7 +2861,7 @@ DECLARE_BINARY_OPS(pow);
  * @param dim The dimension to take the reduce over
  * @param keep_dim Whether the result has the reduction dimension retained or
  * not
- * @param correction Difference between sample size and sampel degrees of
+ * @param correction Difference between sample size and sample degrees of
  * freedom
  * @return the resulting Tensor
  */
@@ -2874,7 +2874,7 @@ DECLARE_BINARY_OPS(pow);
  * @param dims The dimensions to take the reduce over
  * @param keep_dim Whether the result has the reduction dimension retained or
  * not
- * @param correction Difference between sample size and sampel degrees of
+ * @param correction Difference between sample size and sample degrees of
  * freedom
  * @return the resulting Tensor
  */
@@ -2886,7 +2886,7 @@ DECLARE_BINARY_OPS(pow);
  * @param input The input Tensor
  * @param keep_dim Whether the result has the reduction dimension retained or
  * not
- * @param correction Difference between sample size and sampel degrees of
+ * @param correction Difference between sample size and sample degrees of
  * freedom
  * @return the resulting Tensor
  */
@@ -2898,7 +2898,7 @@ DECLARE_BINARY_OPS(pow);
  * @param dim The dimension to reduce over
  * @param keep_dim Whether the result has the reduction dimension retained or
  * not
- * @param correction Difference between sample size and sampel degrees of
+ * @param correction Difference between sample size and sample degrees of
  * freedom
  * @return the resulting Tensor
  */
@@ -2911,7 +2911,7 @@ DECLARE_BINARY_OPS(pow);
  * @param dims The dimensions to reduce over
  * @param keep_dim Whether the result has the reduction dimension retained or
  * not
- * @param correction Difference between sample size and sampel degrees of
+ * @param correction Difference between sample size and sample degrees of
  * freedom
  * @return the resulting Tensor
  */
@@ -3399,7 +3399,7 @@ private:
 };
 
 /**
- * Returns a Boolea Tensor where each element represents if the corresponding
+ * Returns a Boolean Tensor where each element represents if the corresponding
  * element in lhs is close to rhs NaNs are considered equal to each other when
  * equal_nan is true
  * @note Shape and device of Tensors must match
@@ -3414,7 +3414,7 @@ private:
     isclose(const Tensor &lhs, const Tensor &rhs, const CloseOptions &options = CloseOptions()) -> Tensor;
 
 /**
- * Returns a Boolea Tensor where each element represents if the corresponding
+ * Returns a Boolean Tensor where each element represents if the corresponding
  * element in lhs is close to rhs NaNs are considered equal to each other when
  * equal_nan is true
  * @note Close is defined as |lhs - rhs| <= atol + rtol x |other|
@@ -3431,7 +3431,7 @@ template <IsScalarType T>
 }
 
 /**
- * Returns a Boolea Tensor where each element represents if the corresponding
+ * Returns a Boolean Tensor where each element represents if the corresponding
  * element in lhs is close to rhs NaNs are considered equal to each other when
  * equal_nan is true
  * @note Close is defined as |lhs - rhs| <= atol + rtol x |other|
@@ -3499,12 +3499,12 @@ template <IsScalarType T>
 ) -> Tensor;
 
 /**
- * Performs a 2D max-pooling opreation in (kernel_size, kernel_size) regions by
+ * Performs a 2D max-pooling operation in (kernel_size, kernel_size) regions by
  * (stride, stride) steps. The number of output features is equal to the number
  * of input features
- * @param input The input 4d image (batch, in_channels, heigh, width)
+ * @param input The input 4d image (batch, in_channels, height, width)
  * @param kernel_size The size of the pooling region
- * @param stride The stride of the pooling opreation
+ * @param stride The stride of the pooling operation
  * @param padding The mount of zero padding to apply around all side of the
  * input before applying the pooling
  * @return The result of the pooling
@@ -3513,12 +3513,12 @@ template <IsScalarType T>
     -> Tensor;
 
 /**
- * Performs a 2D min-pooling opreation in (kernel_size, kernel_size) regions by
+ * Performs a 2D min-pooling operation in (kernel_size, kernel_size) regions by
  * (stride, stride) steps. The number of output features is equal to the number
  * of input features
- * @param input The input 4d image (batch, in_channels, heigh, width)
+ * @param input The input 4d image (batch, in_channels, height, width)
  * @param kernel_size The size of the pooling region
- * @param stride The stride of the pooling opreation
+ * @param stride The stride of the pooling operation
  * @param padding The mount of zero padding to apply around all side of the
  * input before applying the pooling
  * @return The result of the pooling
@@ -3527,12 +3527,12 @@ template <IsScalarType T>
     -> Tensor;
 
 /**
- * Performs a 2D average-pooling opreation in (kernel_size, kernel_size) regions
+ * Performs a 2D average-pooling operation in (kernel_size, kernel_size) regions
  * by (stride, stride) steps. The number of output features is equal to the
  * number of input features
- * @param input The input 4d image (batch, in_channels, heigh, width)
+ * @param input The input 4d image (batch, in_channels, height, width)
  * @param kernel_size The size of the pooling region
- * @param stride The stride of the pooling opreation
+ * @param stride The stride of the pooling operation
  * @param padding The mount of zero padding to apply around all side of the
  * input before applying the pooling
  * @return The result of the pooling

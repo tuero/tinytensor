@@ -31,7 +31,7 @@ enum class TINYTENSOR_EXPORT FanMode {
 using GainActivationParams = std::unordered_map<std::string, double>;
 
 /**
- * Calculcate the fan in and fan out
+ * Calculate the fan in and fan out
  * @param tensor The tensor, which must be permtued such that dimension 0 is the size of input features, and dimension 1
  * is the size of the output features
  * @return The fan_in and fan_out

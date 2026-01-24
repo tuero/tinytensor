@@ -122,7 +122,7 @@ template DeviceMemory<kF32CType>::~DeviceMemory();
 template DeviceMemory<kF64CType>::~DeviceMemory();
 template DeviceMemory<uint64_t>::~DeviceMemory();
 
-// Clone underyling memory
+// Clone underlying memory
 template <typename T>
     requires(!std::is_const_v<T>)
 auto DeviceMemory<T>::clone() const -> DeviceMemory<T> {
