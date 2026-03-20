@@ -35,10 +35,14 @@ __global__ void
     // Each thread is responsible for TM entries, so the "width" is divided by TM
     const auto thread_row = (threadIdx.x / (TILE_WIDTH / TM));
     const auto thread_col = (threadIdx.x % (TILE_WIDTH / TM));
+    constexpr int THREAD_COLS = TILE_WIDTH / TM;
 
     // Shared buffer for current tile block of A and B
-    __shared__ T A_block[TILE_HEIGHT * TILE_STRIDE];    // NOLINT(*-c-arrays)
-    __shared__ T B_block[TILE_STRIDE * TILE_WIDTH];     // NOLINT(*-c-arrays)
+    constexpr int A_STRIDE = TILE_STRIDE + 1;
+    constexpr int B_SKEW = TILE_WIDTH / 32;
+    constexpr int B_STRIDE = TILE_WIDTH + B_SKEW;
+    __shared__ T A_block[TILE_HEIGHT * A_STRIDE];    // NOLINT(*-c-arrays)
+    __shared__ T B_block[TILE_STRIDE * B_STRIDE];    // NOLINT(*-c-arrays)
 
     // starting row and column of C we will write into
     const auto c_row = blockIdx.y * TILE_HEIGHT;
@@ -85,7 +89,7 @@ __global__ void
             const bool in_range = row < N && col < K;
             const auto idx_A = static_cast<int>((blockIdx.z * N * K) + row * K + col);
             // NOLINTNEXTLINE(*-array-index)
-            A_block[local_row * TILE_STRIDE + innerColA] = in_range ? A[idx_A] : 0;
+            A_block[local_row * A_STRIDE + innerColA] = in_range ? A[idx_A] : 0;
         }
         // We load a block of size [stride A x TILE_STRIDE] for A
         for (int load_offset = 0; load_offset < TILE_STRIDE; load_offset += strideB) {
@@ -94,8 +98,9 @@ __global__ void
             const auto col = static_cast<int>(b_col + innerColB);
             const bool in_range = row < K && col < M;
             const auto idx_B = static_cast<int>((blockIdx.z * K * M) + row * M + col);
+            const auto skewedColB = innerColB + (innerColB / 32);
             // NOLINTNEXTLINE(*-array-index)
-            B_block[local_row * TILE_WIDTH + innerColB] = in_range ? B[idx_B] : 0;
+            B_block[local_row * B_STRIDE + skewedColB] = in_range ? B[idx_B] : 0;
         }
 
         // Wait for all threads to load data into the cache
@@ -111,11 +116,13 @@ __global__ void
             // Load TN + TM results into registers first
             for (int i = 0; i < TN; ++i) {
                 const auto row_idx = thread_row * TN + i;
-                cached_A[i] = A_block[row_idx * TILE_STRIDE + dot_idx];    // NOLINT(*-array-index)
+                cached_A[i] = A_block[row_idx * A_STRIDE + dot_idx];    // NOLINT(*-array-index)
             }
             for (int i = 0; i < TM; ++i) {
+                const auto col_idx = thread_col + i * THREAD_COLS;
+                const auto skewedColRead = col_idx + (col_idx / 32);
                 // NOLINTNEXTLINE(*-array-index)
-                cached_B[i] = B_block[dot_idx * TILE_WIDTH + thread_col * TM + i];
+                cached_B[i] = B_block[dot_idx * B_STRIDE + skewedColRead];
             }
 
             // Compute TN * TM results using the cached results
@@ -134,7 +141,7 @@ __global__ void
     for (int i = 0; i < TN; ++i) {
         for (int j = 0; j < TM; ++j) {
             const auto row = static_cast<int>(c_row + (thread_row * TN + i));
-            const auto col = static_cast<int>(c_col + (thread_col * TM + j));
+            const auto col = static_cast<int>(c_col + (thread_col + j * THREAD_COLS));
             if (row < N && col < M) {
                 const auto idx_C = static_cast<int>((blockIdx.z * N * M) + row * M + col);
                 C[idx_C] = results[i * TM + j];    // NOLINT(*-array-index)
