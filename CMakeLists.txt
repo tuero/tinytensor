@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(tinytensor VERSION 1.0.5 LANGUAGES CXX)
+project(tinytensor VERSION 1.0.6 LANGUAGES CXX)
 
 # Build options
 option(TT_BUILD_CUDA "Build tinytensor with cuda backend support" OFF)
